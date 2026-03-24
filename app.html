@@ -642,7 +642,7 @@ body { overflow: hidden; }
   <button class="tab-btn active" onclick="switchTab('schedule')" data-i18n="tab_schedule">📅 Schedule Builder</button>
   <button class="tab-btn" onclick="switchTab('gantt')" data-i18n="tab_gantt">📊 Gantt Chart</button>
   <button class="tab-btn" onclick="switchTab('report')" data-i18n="tab_report">🤖 AI Report Generator</button>
-  <button class="tab-btn" onclick="switchTab('renew')" style="color:#C47F00;margin-left:auto" data-i18n="tab_renew">🔄 ต่ออายุ License</button>
+  <button class="tab-btn" onclick="switchTab('renew')" style="color:#C47F00;margin-left:auto;display:none" data-i18n="tab_renew">🔄 ต่ออายุ License</button>
 </div>
 
 <!-- ===================== TAB 1: SCHEDULE ===================== -->
@@ -4095,28 +4095,10 @@ function licActivate(){
 
 // ── Check stored license on load ──
 function licCheckOnLoad(){
-  try{
-    const stored=localStorage.getItem(_LIC_STORE);
-    if(stored){
-      const {key}=JSON.parse(stored);
-      const res=licValidateKey(key);
-      if(res&&!res.expired){
-        // Resume DM countdown if applicable
-        if(res.type==='DM'&&res.dmKey) licStartDemoCountdown(res.dmKey);
-        licGrant(res,false); return;
-      }
-      if(res&&res.expired){
-        document.getElementById('lic-overlay').classList.remove('hidden');
-        const msg = res.type==='DM'
-          ? '⏰ หมดเวลาทดลองใช้งาน 24 ชม. แล้ว — <a href="'+_WA_RENEW+'" target="_blank" style="color:#9B6DFF">ซื้อ License เต็ม →</a>'
-          : '⏰ License ของคุณหมดอายุแล้ว — <a href="'+_WA_RENEW+'" target="_blank" style="color:#C47F00">ต่ออายุผ่าน WhatsApp →</a>';
-        document.getElementById('lic-err').innerHTML=msg;
-        const inp=document.getElementById('lic-input'); if(inp) inp.value=key;
-        return;
-      }
-    }
-  }catch(e){}
-  document.getElementById('lic-overlay').classList.remove('hidden');
+  // License managed by Electron Hardware-ID lock — auto-grant LT
+  const autoKey = licGenKey('SSV3D','LT');
+  const res = licValidateKey(autoKey);
+  if(res) licGrant(res, true);
 }
 
 // ── Grant access ──
