@@ -3053,38 +3053,6 @@ function copyReport(){
 function printReport(){
   const w=window.open('','_blank');
   w.document.write(`<html><head><title>Report</title><style>body{font-family:monospace;padding:40px;font-size:13px;line-height:1.7;white-space:pre-wrap;}</style></head><body>${document.getElementById('report-out').textContent}
-<script>
-// ── Inject Electron App Version ──────────────────────────────────────
-(function(){
-  function applyVersion(v){
-    // badge header
-    var badge = document.getElementById('app-version-badge');
-    if(badge) badge.textContent = 'v' + v;
-    // hdr-tag (ถ้ายังไม่มีชื่อโปรเจกต์)
-    var tag = document.getElementById('hdr-tag');
-    if(tag && (tag.textContent.indexOf('Smart Project Suite') !== -1 || tag.textContent.indexOf('v7') !== -1)){
-      tag.textContent = 'AI Construction PM Suite — v' + v;
-    }
-    // title
-    document.title = 'AI Construction PM v' + v;
-    // เก็บไว้ใช้ทั่วไป
-    window.__APP_VERSION = v;
-  }
-
-  // ถ้ารันใน Electron — ดึง version ผ่าน ipcRenderer
-  if(window.require){
-    try{
-      var ipc = window.require('electron').ipcRenderer;
-      ipc.invoke('get-version').then(function(v){ if(v) applyVersion(v); }).catch(function(){});
-    } catch(e){}
-  }
-  // ถ้ารันใน browser ปกติ — ลองดึงจาก version.json (auto-update server)
-  else if(window.__VERSION_URL){
-    fetch(window.__VERSION_URL).then(function(r){ return r.json(); })
-      .then(function(d){ if(d && d.version) applyVersion(d.version); }).catch(function(){});
-  }
-})();
-</script>
 
 </body></html>`);
   w.document.close();w.print();
@@ -3311,38 +3279,6 @@ function buildGanttHTML(size, forPDF){
 </div>
 
 
-<script>
-// ── Inject Electron App Version ──────────────────────────────────────
-(function(){
-  function applyVersion(v){
-    // badge header
-    var badge = document.getElementById('app-version-badge');
-    if(badge) badge.textContent = 'v' + v;
-    // hdr-tag (ถ้ายังไม่มีชื่อโปรเจกต์)
-    var tag = document.getElementById('hdr-tag');
-    if(tag && (tag.textContent.indexOf('Smart Project Suite') !== -1 || tag.textContent.indexOf('v7') !== -1)){
-      tag.textContent = 'AI Construction PM Suite — v' + v;
-    }
-    // title
-    document.title = 'AI Construction PM v' + v;
-    // เก็บไว้ใช้ทั่วไป
-    window.__APP_VERSION = v;
-  }
-
-  // ถ้ารันใน Electron — ดึง version ผ่าน ipcRenderer
-  if(window.require){
-    try{
-      var ipc = window.require('electron').ipcRenderer;
-      ipc.invoke('get-version').then(function(v){ if(v) applyVersion(v); }).catch(function(){});
-    } catch(e){}
-  }
-  // ถ้ารันใน browser ปกติ — ลองดึงจาก version.json (auto-update server)
-  else if(window.__VERSION_URL){
-    fetch(window.__VERSION_URL).then(function(r){ return r.json(); })
-      .then(function(d){ if(d && d.version) applyVersion(d.version); }).catch(function(){});
-  }
-})();
-</script>
 
 </body></html>`;
   return {html, pageW, pageH};
@@ -3509,38 +3445,6 @@ body{background:#fff;font-family:'IBM Plex Sans Thai',sans-serif;padding:28px 36
 <div class="body">${txt.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
 <div class="ftr"><span>AI Construction PM Suite</span><span>${rProj} • ${ds}</span></div>
 
-<script>
-// ── Inject Electron App Version ──────────────────────────────────────
-(function(){
-  function applyVersion(v){
-    // badge header
-    var badge = document.getElementById('app-version-badge');
-    if(badge) badge.textContent = 'v' + v;
-    // hdr-tag (ถ้ายังไม่มีชื่อโปรเจกต์)
-    var tag = document.getElementById('hdr-tag');
-    if(tag && (tag.textContent.indexOf('Smart Project Suite') !== -1 || tag.textContent.indexOf('v7') !== -1)){
-      tag.textContent = 'AI Construction PM Suite — v' + v;
-    }
-    // title
-    document.title = 'AI Construction PM v' + v;
-    // เก็บไว้ใช้ทั่วไป
-    window.__APP_VERSION = v;
-  }
-
-  // ถ้ารันใน Electron — ดึง version ผ่าน ipcRenderer
-  if(window.require){
-    try{
-      var ipc = window.require('electron').ipcRenderer;
-      ipc.invoke('get-version').then(function(v){ if(v) applyVersion(v); }).catch(function(){});
-    } catch(e){}
-  }
-  // ถ้ารันใน browser ปกติ — ลองดึงจาก version.json (auto-update server)
-  else if(window.__VERSION_URL){
-    fetch(window.__VERSION_URL).then(function(r){ return r.json(); })
-      .then(function(d){ if(d && d.version) applyVersion(d.version); }).catch(function(){});
-  }
-})();
-</script>
 
 </body></html>`;
     const iframe = document.createElement('iframe');
@@ -5288,39 +5192,27 @@ function toggleLang(){
   </button>
 </div>
 
+
 <script>
-// ── Inject Electron App Version ──────────────────────────────────────
 (function(){
   function applyVersion(v){
-    // badge header
-    var badge = document.getElementById('app-version-badge');
-    if(badge) badge.textContent = 'v' + v;
-    // hdr-tag (ถ้ายังไม่มีชื่อโปรเจกต์)
-    var tag = document.getElementById('hdr-tag');
-    if(tag && (tag.textContent.indexOf('Smart Project Suite') !== -1 || tag.textContent.indexOf('v7') !== -1)){
-      tag.textContent = 'AI Construction PM Suite — v' + v;
+    var badge=document.getElementById('app-version-badge');
+    if(badge) badge.textContent='v'+v;
+    var tag=document.getElementById('hdr-tag');
+    if(tag&&(tag.textContent.indexOf('Smart Project Suite')!==-1||tag.textContent.indexOf('v7')!==-1)){
+      tag.textContent='AI Construction PM Suite — v'+v;
     }
-    // title
-    document.title = 'AI Construction PM v' + v;
-    // เก็บไว้ใช้ทั่วไป
-    window.__APP_VERSION = v;
+    document.title='AI Construction PM v'+v;
+    window.__APP_VERSION=v;
   }
-
-  // ถ้ารันใน Electron — ดึง version ผ่าน ipcRenderer
   if(window.require){
     try{
-      var ipc = window.require('electron').ipcRenderer;
-      ipc.invoke('get-version').then(function(v){ if(v) applyVersion(v); }).catch(function(){});
-    } catch(e){}
-  }
-  // ถ้ารันใน browser ปกติ — ลองดึงจาก version.json (auto-update server)
-  else if(window.__VERSION_URL){
-    fetch(window.__VERSION_URL).then(function(r){ return r.json(); })
-      .then(function(d){ if(d && d.version) applyVersion(d.version); }).catch(function(){});
+      var ipc=window.require('electron').ipcRenderer;
+      ipc.invoke('get-version').then(function(v){if(v)applyVersion(v);}).catch(function(){});
+    }catch(e){}
   }
 })();
 </script>
-
 </body>
 </html>
 
