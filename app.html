@@ -114,7 +114,7 @@ header{
 .stat-sub{font-size:10px;color:var(--text3);margin-top:2px;}
 
 /* ========== SETUP GRID ========== */
-.setup-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1.5fr 1.2fr auto;gap:10px;align-items:end;margin-bottom:20px;}
+.setup-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1.5fr 1.2fr auto;gap:10px;align-items:end;margin-bottom:20px;}
 
 /* ========== LEGEND ========== */
 .legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px;}
@@ -651,8 +651,9 @@ body { overflow: hidden; }
   <div class="slabel">⚙️ <span data-i18n="lbl_project_setup">Project Setup</span></div>
   <div class="setup-grid">
     <div class="fg"><label data-i18n="lbl_proj_name">ชื่อโปรเจกต์</label><input id="proj-name" value="" placeholder="ชื่อโปรเจกต์"></div>
-    <div class="fg"><label data-i18n="lbl_start_date">วันเริ่มต้น</label><input type="date" id="start-date"></div>
-    <div class="fg"><label data-i18n="lbl_duration">ระยะเวลา (วันปฏิทิน)</label><input type="number" id="duration" value="90" min="7" max="365"></div>
+    <div class="fg"><label data-i18n="lbl_start_date">วันเริ่มต้น</label><input type="date" id="start-date" onchange="onStartDateChange()"></div>
+    <div class="fg"><label>วันสิ้นสุด</label><input type="date" id="end-date" onchange="onEndDateChange()"></div>
+    <div class="fg"><label data-i18n="lbl_duration">ระยะเวลา (วันปฏิทิน)</label><input type="number" id="duration" value="90" min="7" max="365" onchange="onDurationChange()"></div>
     <div class="fg"><label data-i18n="lbl_holiday_cal">ปฏิทินวันหยุด</label>
       <select id="holiday-cal">
         <option value="lao">🇱🇦 ลาว (วันพระ + ราชการลาว)</option>
@@ -1394,6 +1395,40 @@ function renderRenewStatus(){
 // ============================================================
 // GENERATE SCHEDULE
 // ============================================================
+
+// ── Project Setup: sync end-date ↔ duration ──────────────────────────
+function onStartDateChange(){
+  const si = document.getElementById('start-date').value;
+  const ei = document.getElementById('end-date').value;
+  if(si && ei){
+    const sd = new Date(si), ed = new Date(ei);
+    if(ed > sd){
+      const diff = Math.round((ed - sd) / 86400000) + 1;
+      document.getElementById('duration').value = diff;
+    }
+  }
+}
+function onEndDateChange(){
+  const si = document.getElementById('start-date').value;
+  const ei = document.getElementById('end-date').value;
+  if(si && ei){
+    const sd = new Date(si), ed = new Date(ei);
+    if(ed >= sd){
+      const diff = Math.round((ed - sd) / 86400000) + 1;
+      document.getElementById('duration').value = diff;
+    }
+  }
+}
+function onDurationChange(){
+  const si = document.getElementById('start-date').value;
+  const dur = parseInt(document.getElementById('duration').value)||90;
+  if(si){
+    const sd = new Date(si);
+    const ed = new Date(sd);
+    ed.setDate(ed.getDate() + dur - 1);
+    document.getElementById('end-date').value = ed.toISOString().slice(0,10);
+  }
+}
 function generateSchedule(){
   const si=document.getElementById('start-date').value;
   const dur=parseInt(document.getElementById('duration').value)||90;
@@ -1401,7 +1436,9 @@ function generateSchedule(){
   const pn=document.getElementById('proj-name').value||'โปรเจกต์';
   if(!si){alert('กรุณาเลือกวันเริ่มต้นครับ');return;}
   const sd=new Date(si);
-  const ed=new Date(sd);ed.setDate(ed.getDate()+dur-1);
+  // ถ้ากรอกวันสิ้นสุด — ใช้ค่านั้น ไม่งั้นคำนวณจากระยะเวลา
+  const eiVal=document.getElementById('end-date').value;
+  const ed=eiVal?new Date(eiVal):(()=>{const d=new Date(sd);d.setDate(d.getDate()+dur-1);return d;})();
   ST.startDate=sd;ST.endDate=ed;ST.calType=ct;ST.projName=pn;
   ST.vm=sd.getMonth();ST.vy=sd.getFullYear();
 
@@ -1423,6 +1460,7 @@ function generateSchedule(){
   document.getElementById('s-wknd').textContent=wknd;
   document.getElementById('s-end').textContent=fmtD(ed);
   document.getElementById('tasks-proj-name').textContent=pn;
+  document.getElementById('end-date').value=ed.toISOString().slice(0,10);
   document.getElementById('stats-area').style.display='block';
   document.getElementById('r-proj').value=pn;
 
