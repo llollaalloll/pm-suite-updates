@@ -1320,11 +1320,21 @@ function renderRenewStatus(){
   const el = document.getElementById('renew-status-body');
   if(!el) return;
   try{
+    // พยายามอ่านจาก localStorage ก่อน
+    let res = null;
     const stored = localStorage.getItem(_LIC_STORE);
-    if(!stored){ el.innerHTML='<div style="color:var(--text2);font-size:13px">ไม่พบข้อมูล License</div>'; return; }
-    const { key, name, type } = JSON.parse(stored);
-    const res = licValidateKey(key);
-    if(!res){ el.innerHTML='<div style="color:#E05555;font-size:13px">❌ License ไม่ถูกต้อง</div>'; return; }
+    if(stored){
+      try{
+        const { key } = JSON.parse(stored);
+        res = licValidateKey(key);
+      }catch(e){}
+    }
+    // ถ้าไม่มีหรือ invalid — ใช้ auto-grant key (SSV3D LT)
+    if(!res || res.expired){
+      const autoKey = licGenKey('SSV3D','LT');
+      res = licValidateKey(autoKey);
+    }
+    if(!res){ el.innerHTML='<div style="color:var(--text2);font-size:13px">ไม่พบข้อมูล License</div>'; return; }
     const ti = res.typeInfo;
     const expired = res.expired;
     const daysLeft = res.daysLeft;
@@ -4247,10 +4257,25 @@ function licActivate(){
 
 // ── Check stored license on load ──
 function licCheckOnLoad(){
-  // License managed by Electron Hardware-ID lock — auto-grant LT
+  // ถ้ามี key บันทึกไว้แล้ว ใช้ key นั้น
+  try{
+    const stored = localStorage.getItem(_LIC_STORE);
+    if(stored){
+      const {key} = JSON.parse(stored);
+      const res = licValidateKey(key);
+      if(res && !res.expired){ licGrant(res, false); return; }
+    }
+  } catch(e){}
+  // Auto-grant LT สำหรับ Electron app (License ผ่าน app store)
   const autoKey = licGenKey('SSV3D','LT');
   const res = licValidateKey(autoKey);
-  if(res) licGrant(res, true);
+  if(res){
+    licGrant(res, true);
+  } else {
+    // Fallback: ซ่อน overlay ให้ใช้งานได้เลย
+    const ov = document.getElementById('lic-overlay');
+    if(ov) ov.classList.add('hidden');
+  }
 }
 
 // ── Grant access ──
