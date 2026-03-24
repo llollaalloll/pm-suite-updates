@@ -3711,6 +3711,7 @@ function pmRename(id){
   _dbSetAsync(db); _dbSet(db);
   if(_curId === id){ ST.projName = n.trim(); document.getElementById('proj-name').value = n.trim(); document.getElementById('hdr-tag').textContent = '📁 ' + n.trim(); }
   pmRender();
+  });
 }
 
 function pmNew(){
