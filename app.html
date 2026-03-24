@@ -650,7 +650,7 @@ body { overflow: hidden; }
 
   <div class="slabel">⚙️ <span data-i18n="lbl_project_setup">Project Setup</span></div>
   <div class="setup-grid">
-    <div class="fg"><label data-i18n="lbl_proj_name">ชื่อโปรเจกต์</label><input id="proj-name" value="Villa Vientiane Phase 1" placeholder="ชื่อโปรเจกต์"></div>
+    <div class="fg"><label data-i18n="lbl_proj_name">ชื่อโปรเจกต์</label><input id="proj-name" value="" placeholder="ชื่อโปรเจกต์"></div>
     <div class="fg"><label data-i18n="lbl_start_date">วันเริ่มต้น</label><input type="date" id="start-date"></div>
     <div class="fg"><label data-i18n="lbl_duration">ระยะเวลา (วันปฏิทิน)</label><input type="number" id="duration" value="90" min="7" max="365"></div>
     <div class="fg"><label data-i18n="lbl_holiday_cal">ปฏิทินวันหยุด</label>
@@ -837,16 +837,16 @@ body { overflow: hidden; }
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
               <div class="fg"><label>วันที่</label><input type="date" id="r-date"></div>
-              <div class="fg"><label>% ความคืบหน้ารวม</label><input type="number" id="r-progress" value="45" min="0" max="100"></div>
+              <div class="fg"><label>% ความคืบหน้ารวม</label><input type="number" id="r-progress" value="" min="0" max="100"></div>
             </div>
             <div class="fg"><label>งานที่ทำวันนี้/สัปดาห์นี้</label>
-              <textarea id="r-work" placeholder="เช่น: เทคอนกรีตพื้น Zone A เสร็จแล้ว" style="min-height:72px">เทคอนกรีตพื้น Zone A เสร็จ 100%, งานฉาบผนังชั้น 2 กำลังดำเนิน 60%, ติดตั้ง MEP ท่อน้ำชั้น 1 เสร็จแล้ว</textarea>
+              <textarea id="r-work" placeholder="เช่น: เทคอนกรีตพื้น Zone A เสร็จแล้ว" style="min-height:72px"></textarea>
             </div>
             <div class="fg"><label>ปัญหาและอุปสรรค</label>
-              <textarea id="r-issues" placeholder="เช่น: วัสดุบางรายการส่งล่าช้า" style="min-height:72px">วัสดุเหล็กเส้น ส่งล่าช้า 3 วัน เนื่องจากปัญหาขนส่ง</textarea>
+              <textarea id="r-issues" placeholder="เช่น: วัสดุบางรายการส่งล่าช้า" style="min-height:72px"></textarea>
             </div>
             <div class="fg"><label>แผนงานต่อไป</label>
-              <textarea id="r-plan" placeholder="เช่น: พรุ่งนี้จะเริ่มงานหลังคา Zone B" style="min-height:72px">เริ่มงานโครงหลังคา Zone B, เร่งงานฉาบผนังชั้น 2 ให้เสร็จภายในสัปดาห์นี้</textarea>
+              <textarea id="r-plan" placeholder="เช่น: พรุ่งนี้จะเริ่มงานหลังคา Zone B" style="min-height:72px"></textarea>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
               <div class="fg"><label>ภาษาผลลัพธ์</label>
@@ -1404,12 +1404,7 @@ function generateSchedule(){
   ST.startDate=sd;ST.endDate=ed;ST.calType=ct;ST.projName=pn;
   ST.vm=sd.getMonth();ST.vy=sd.getFullYear();
 
-  ST.tasks=DEF_TASKS.map((t,i)=>{
-    const ts=new Date(sd);ts.setDate(ts.getDate()+t.off);
-    const te=addWD(ts,t.wd,ct);
-    return{id:i,name:t.name,startDate:ts,endDate:te,wd:t.wd,prog:t.prog,color:t.color,assignee:t.assignee||'',
-      subtasks:(t.subtasks||[]).map(s=>({...s,assignee:s.assignee||'',budgetMat:s.budgetMat||0,budgetLab:s.budgetLab||0})),expanded:false};
-  });
+  ST.tasks=[];
 
   let work=0,nw=0,wknd=0;
   let d=new Date(sd);
@@ -3554,10 +3549,22 @@ function pmDel(id, name){
   if(!confirm('ลบโปรเจกต์ [' + name + '] ? ไม่สามารถเรียกคืนได้')) return;
   const db=_dbGet(); delete db[id]; _dbSet(db);
   if(_curId===id){
+    // ล้างหน้าจอทั้งหมดเหมือนสร้างโปรเจกต์ใหม่
     _curId=null;
+    ST.startDate=null; ST.endDate=null; ST.tasks=[]; ST.projName=''; ST.vm=null; ST.vy=null;
+    document.getElementById('proj-name').value='';
+    document.getElementById('stats-area').style.display='none';
     document.getElementById('hdr-tag').textContent='Smart Project Suite — v7 Multi-Project';
+    document.getElementById('r-proj').value='';
+    document.getElementById('tasks-proj-name').textContent='—';
+    try{ document.getElementById('tasks-body').innerHTML=''; }catch(e){}
+    try{ document.getElementById('gantt-proj-name').textContent=''; }catch(e){}
+    const n=new Date();
+    document.getElementById('start-date').value=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');
+    switchTab('schedule');
   }
   pmRender();
+  pmToast('🗑️ ลบโปรเจกต์ "'+name+'" แล้ว','var(--red)');
 }
 
 function pmRename(id){
