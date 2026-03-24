@@ -1757,7 +1757,7 @@ function renderTasks(){
     tr.innerHTML=`
       <td style="text-align:center;padding:0 4px;width:24px">
         <button class="subtask-toggle" onclick="toggleSub(${i})">
-          ${hasSub?(isExp?'▼':'▶'):'<span style="color:var(--text3)">·</span>'}
+          ${isExp?'▼':'▶'}
         </button>
       </td>
       <td>
@@ -1816,12 +1816,10 @@ function renderTasks(){
     `;
     tbody.appendChild(tr);
 
-    if(!hasSub) return;
-
     // ── Subtask group row
     const subGroup=document.createElement('tr');
     subGroup.id='stg-'+i;
-    subGroup.style.display=isExp?'':'none';
+    subGroup.style.display=(isExp||!hasSub)?'':'none';
     const subTd=document.createElement('td');
     subTd.colSpan=12;
     subTd.style.cssText='padding:0;border-bottom:2px solid var(--border2)';
