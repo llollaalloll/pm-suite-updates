@@ -597,7 +597,7 @@ body { overflow: hidden; }
   </div>
   <div class="header-right">
     <span class="badge">🇱🇦 LAO + 🇹🇭 TH</span>
-    <span class="badge" style="background:var(--blue-soft);border-color:rgba(46,116,184,0.4);color:var(--blue)">v7 Multi-Project</span>
+    <span class="badge" style="background:var(--blue-soft);border-color:rgba(46,116,184,0.4);color:var(--blue)" id="app-version-badge">v7</span>
     <button id="lang-toggle-btn" onclick="toggleLang()"
       style="background:var(--bg2);border:1px solid var(--border2);color:var(--text2);
       font-size:12px;font-weight:700;padding:7px 13px;border-radius:6px;cursor:pointer;
@@ -3052,7 +3052,41 @@ function copyReport(){
 
 function printReport(){
   const w=window.open('','_blank');
-  w.document.write(`<html><head><title>Report</title><style>body{font-family:monospace;padding:40px;font-size:13px;line-height:1.7;white-space:pre-wrap;}</style></head><body>${document.getElementById('report-out').textContent}</body></html>`);
+  w.document.write(`<html><head><title>Report</title><style>body{font-family:monospace;padding:40px;font-size:13px;line-height:1.7;white-space:pre-wrap;}</style></head><body>${document.getElementById('report-out').textContent}
+<script>
+// ── Inject Electron App Version ──────────────────────────────────────
+(function(){
+  function applyVersion(v){
+    // badge header
+    var badge = document.getElementById('app-version-badge');
+    if(badge) badge.textContent = 'v' + v;
+    // hdr-tag (ถ้ายังไม่มีชื่อโปรเจกต์)
+    var tag = document.getElementById('hdr-tag');
+    if(tag && (tag.textContent.indexOf('Smart Project Suite') !== -1 || tag.textContent.indexOf('v7') !== -1)){
+      tag.textContent = 'AI Construction PM Suite — v' + v;
+    }
+    // title
+    document.title = 'AI Construction PM v' + v;
+    // เก็บไว้ใช้ทั่วไป
+    window.__APP_VERSION = v;
+  }
+
+  // ถ้ารันใน Electron — ดึง version ผ่าน ipcRenderer
+  if(window.require){
+    try{
+      var ipc = window.require('electron').ipcRenderer;
+      ipc.invoke('get-version').then(function(v){ if(v) applyVersion(v); }).catch(function(){});
+    } catch(e){}
+  }
+  // ถ้ารันใน browser ปกติ — ลองดึงจาก version.json (auto-update server)
+  else if(window.__VERSION_URL){
+    fetch(window.__VERSION_URL).then(function(r){ return r.json(); })
+      .then(function(d){ if(d && d.version) applyVersion(d.version); }).catch(function(){});
+  }
+})();
+</script>
+
+</body></html>`);
   w.document.close();w.print();
 }
 
@@ -3276,6 +3310,40 @@ function buildGanttHTML(size, forPDF){
   <div style="font-size:7px;color:#9e9a92">หน้า 1 / 1 &nbsp;•&nbsp; ${ST.projName} &nbsp;•&nbsp; ${dateStr}</div>
 </div>
 
+
+<script>
+// ── Inject Electron App Version ──────────────────────────────────────
+(function(){
+  function applyVersion(v){
+    // badge header
+    var badge = document.getElementById('app-version-badge');
+    if(badge) badge.textContent = 'v' + v;
+    // hdr-tag (ถ้ายังไม่มีชื่อโปรเจกต์)
+    var tag = document.getElementById('hdr-tag');
+    if(tag && (tag.textContent.indexOf('Smart Project Suite') !== -1 || tag.textContent.indexOf('v7') !== -1)){
+      tag.textContent = 'AI Construction PM Suite — v' + v;
+    }
+    // title
+    document.title = 'AI Construction PM v' + v;
+    // เก็บไว้ใช้ทั่วไป
+    window.__APP_VERSION = v;
+  }
+
+  // ถ้ารันใน Electron — ดึง version ผ่าน ipcRenderer
+  if(window.require){
+    try{
+      var ipc = window.require('electron').ipcRenderer;
+      ipc.invoke('get-version').then(function(v){ if(v) applyVersion(v); }).catch(function(){});
+    } catch(e){}
+  }
+  // ถ้ารันใน browser ปกติ — ลองดึงจาก version.json (auto-update server)
+  else if(window.__VERSION_URL){
+    fetch(window.__VERSION_URL).then(function(r){ return r.json(); })
+      .then(function(d){ if(d && d.version) applyVersion(d.version); }).catch(function(){});
+  }
+})();
+</script>
+
 </body></html>`;
   return {html, pageW, pageH};
 }
@@ -3440,6 +3508,40 @@ body{background:#fff;font-family:'IBM Plex Sans Thai',sans-serif;padding:28px 36
 <div class="meta"><div>วันที่: ${rDate}</div><div>ผู้จัดทำ: ${rAuthor}</div><div>พิมพ์: ${ds}</div></div></div>
 <div class="body">${txt.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
 <div class="ftr"><span>AI Construction PM Suite</span><span>${rProj} • ${ds}</span></div>
+
+<script>
+// ── Inject Electron App Version ──────────────────────────────────────
+(function(){
+  function applyVersion(v){
+    // badge header
+    var badge = document.getElementById('app-version-badge');
+    if(badge) badge.textContent = 'v' + v;
+    // hdr-tag (ถ้ายังไม่มีชื่อโปรเจกต์)
+    var tag = document.getElementById('hdr-tag');
+    if(tag && (tag.textContent.indexOf('Smart Project Suite') !== -1 || tag.textContent.indexOf('v7') !== -1)){
+      tag.textContent = 'AI Construction PM Suite — v' + v;
+    }
+    // title
+    document.title = 'AI Construction PM v' + v;
+    // เก็บไว้ใช้ทั่วไป
+    window.__APP_VERSION = v;
+  }
+
+  // ถ้ารันใน Electron — ดึง version ผ่าน ipcRenderer
+  if(window.require){
+    try{
+      var ipc = window.require('electron').ipcRenderer;
+      ipc.invoke('get-version').then(function(v){ if(v) applyVersion(v); }).catch(function(){});
+    } catch(e){}
+  }
+  // ถ้ารันใน browser ปกติ — ลองดึงจาก version.json (auto-update server)
+  else if(window.__VERSION_URL){
+    fetch(window.__VERSION_URL).then(function(r){ return r.json(); })
+      .then(function(d){ if(d && d.version) applyVersion(d.version); }).catch(function(){});
+  }
+})();
+</script>
+
 </body></html>`;
     const iframe = document.createElement('iframe');
     iframe.style.cssText='position:fixed;left:-9999px;top:0;width:794px;height:1122px;border:none';
@@ -5185,6 +5287,40 @@ function toggleLang(){
     ปิด
   </button>
 </div>
+
+<script>
+// ── Inject Electron App Version ──────────────────────────────────────
+(function(){
+  function applyVersion(v){
+    // badge header
+    var badge = document.getElementById('app-version-badge');
+    if(badge) badge.textContent = 'v' + v;
+    // hdr-tag (ถ้ายังไม่มีชื่อโปรเจกต์)
+    var tag = document.getElementById('hdr-tag');
+    if(tag && (tag.textContent.indexOf('Smart Project Suite') !== -1 || tag.textContent.indexOf('v7') !== -1)){
+      tag.textContent = 'AI Construction PM Suite — v' + v;
+    }
+    // title
+    document.title = 'AI Construction PM v' + v;
+    // เก็บไว้ใช้ทั่วไป
+    window.__APP_VERSION = v;
+  }
+
+  // ถ้ารันใน Electron — ดึง version ผ่าน ipcRenderer
+  if(window.require){
+    try{
+      var ipc = window.require('electron').ipcRenderer;
+      ipc.invoke('get-version').then(function(v){ if(v) applyVersion(v); }).catch(function(){});
+    } catch(e){}
+  }
+  // ถ้ารันใน browser ปกติ — ลองดึงจาก version.json (auto-update server)
+  else if(window.__VERSION_URL){
+    fetch(window.__VERSION_URL).then(function(r){ return r.json(); })
+      .then(function(d){ if(d && d.version) applyVersion(d.version); }).catch(function(){});
+  }
+})();
+</script>
+
 </body>
 </html>
 
