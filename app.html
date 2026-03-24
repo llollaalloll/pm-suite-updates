@@ -3519,6 +3519,82 @@ body{background:#fff;font-family:'IBM Plex Sans Thai',sans-serif;padding:28px 36
 // ============================================================
 const _PM = 'aipm7';
 const _PL = 'aipm7_last';
+
+// ── File-based DB (Electron) ───────────────────────────────────────────
+// ถ้าอยู่ใน Electron ใช้ IPC เขียน/อ่านไฟล์ — ข้อมูลไม่หายเมื่อล้าง cache
+// ถ้าอยู่ใน browser ปกติ fallback ไป localStorage
+
+const _isElectron = !!(window && window.require);
+
+// Async wrappers
+async function _dbGetAsync(){
+  if(_isElectron){
+    try{
+      const ipc = window.require('electron').ipcRenderer;
+      const raw = await ipc.invoke('db-read');
+      return JSON.parse(raw||'{}');
+    }catch(e){}
+  }
+  try{ return JSON.parse(localStorage.getItem(_PM)||'{}'); }catch(e){ return {}; }
+}
+
+async function _dbSetAsync(d){
+  const str = JSON.stringify(d);
+  if(_isElectron){
+    try{
+      const ipc = window.require('electron').ipcRenderer;
+      await ipc.invoke('db-write', str);
+      return;
+    }catch(e){}
+  }
+  try{ localStorage.setItem(_PM, str); }catch(e){ alert('Storage เต็มครับ'); }
+}
+
+async function _dbReadLastAsync(){
+  if(_isElectron){
+    try{
+      const ipc = window.require('electron').ipcRenderer;
+      return await ipc.invoke('db-read-last');
+    }catch(e){}
+  }
+  try{ return localStorage.getItem(_PL)||''; }catch(e){ return ''; }
+}
+
+async function _dbWriteLastAsync(id){
+  if(_isElectron){
+    try{
+      const ipc = window.require('electron').ipcRenderer;
+      await ipc.invoke('db-write-last', id);
+      return;
+    }catch(e){}
+  }
+  try{ localStorage.setItem(_PL, id); }catch(e){}
+}
+
+// Sync fallback (ยังใช้ได้สำหรับ call ที่ไม่ได้ await)
+function _dbGet(){ try{ return JSON.parse(localStorage.getItem(_PM)||'{}'); }catch(e){ return {}; } }
+function _dbSet(d){ try{ localStorage.setItem(_PM, JSON.stringify(d)); }catch(e){} }
+
+// ── Auto-migrate localStorage → file เมื่อเปิด Electron ครั้งแรก ──────
+async function _migrateToFile(){
+  if(!_isElectron) return;
+  try{
+    const ipc = window.require('electron').ipcRenderer;
+    const fileRaw = await ipc.invoke('db-read');
+    const fileData = JSON.parse(fileRaw||'{}');
+    // ถ้าไฟล์ว่าง แต่ localStorage มีข้อมูล — migrate
+    if(Object.keys(fileData).length === 0){
+      const lsRaw = localStorage.getItem(_PM)||'{}';
+      const lsData = JSON.parse(lsRaw);
+      if(Object.keys(lsData).length > 0){
+        await ipc.invoke('db-write', lsRaw);
+        const lastId = localStorage.getItem(_PL)||'';
+        if(lastId) await ipc.invoke('db-write-last', lastId);
+        console.log('[PM] Migrated', Object.keys(lsData).length, 'projects from localStorage to file');
+      }
+    }
+  }catch(e){ console.log('[PM] Migration skipped:', e.message); }
+}
 let _curId = null;
 
 function _dbGet(){ try{ return JSON.parse(localStorage.getItem(_PM)||'{}'); }catch(e){ return {}; } }
@@ -3555,19 +3631,26 @@ function _unpack(d){
 
 function pmSaveCurrent(){
   if(!ST.startDate){ alert('กรุณา Generate Schedule ก่อนบันทึกครับ'); return; }
-  const db = _dbGet();
   const id = _curId || ('p' + Date.now());
-  db[id] = { id, name: ST.projName||'ไม่มีชื่อ', savedAt: new Date().toISOString(), calType: ST.calType, tc: ST.tasks.length, state: _pack() };
-  _dbSet(db); _curId = id;
-  try{ localStorage.setItem(_PL, id); }catch(e){}
+  _curId = id;
+  _dbGetAsync().then(db=>{
+    db[id] = { id, name: ST.projName||'ไม่มีชื่อ', savedAt: new Date().toISOString(), calType: ST.calType, tc: ST.tasks.length, state: _pack() };
+    _dbSetAsync(db);
+    _dbSet(db); // localStorage sync backup
+  });
+  _dbWriteLastAsync(id).catch(()=>{}); try{ localStorage.setItem(_PL, id); }catch(e){}
   pmRender();
   pmToast('💾 บันทึก "' + ST.projName + '" แล้ว', 'var(--green)');
 }
 
 function pmLoad(id){
-  const db = _dbGet(); const p = db[id]; if(!p) return;
+  _dbWriteLastAsync(id).catch(()=>{}); try{ localStorage.setItem(_PL, id); }catch(e){}
+  const db = _dbGet(); const p = db[id]; if(!p){
+    // fallback: โหลดจากไฟล์แล้วลองใหม่
+    _dbGetAsync().then(fdb=>{ const fp=fdb[id]; if(fp){ _unpack(fp.state); _curId=id; pmRender(); } });
+    return;
+  }
   _unpack(p.state); _curId = id;
-  try{ localStorage.setItem(_PL, id); }catch(e){}
   document.getElementById('proj-name').value = ST.projName;
   document.getElementById('holiday-cal').value = ST.calType;
   document.getElementById('hdr-tag').textContent = '📁 ' + ST.projName;
@@ -3600,6 +3683,7 @@ function pmLoad(id){
 
 function pmDel(id, name){
   if(!confirm('ลบโปรเจกต์ [' + name + '] ? ไม่สามารถเรียกคืนได้')) return;
+  _dbGetAsync().then(db=>{ delete db[id]; _dbSetAsync(db); });
   const db=_dbGet(); delete db[id]; _dbSet(db);
   if(_curId===id){
     // ล้างหน้าจอทั้งหมดเหมือนสร้างโปรเจกต์ใหม่
@@ -3621,15 +3705,17 @@ function pmDel(id, name){
 }
 
 function pmRename(id){
-  const db = _dbGet(); if(!db[id]) return;
+  _dbGetAsync().then(db=>{ if(!db[id]) return;
   const n = prompt('ชื่อใหม่:', db[id].name); if(!n||!n.trim()) return;
-  db[id].name = n.trim(); db[id].state.projName = n.trim(); _dbSet(db);
+  db[id].name = n.trim(); db[id].state.projName = n.trim();
+  _dbSetAsync(db); _dbSet(db);
   if(_curId === id){ ST.projName = n.trim(); document.getElementById('proj-name').value = n.trim(); document.getElementById('hdr-tag').textContent = '📁 ' + n.trim(); }
   pmRender();
 }
 
 function pmNew(){
   if(ST.startDate && _curId) pmSaveCurrent();
+  _dbWriteLastAsync('').catch(()=>{});
   ST.startDate = null; ST.endDate = null; ST.tasks = []; ST.projName = ''; ST.vm = null; ST.vy = null; _curId = null;
   document.getElementById('proj-name').value = '';
   document.getElementById('stats-area').style.display = 'none';
@@ -3642,7 +3728,9 @@ function pmNew(){
 }
 
 function pmRender(){
-  const db=_dbGet();
+  _dbGetAsync().then(db=>{ _pmRenderInternal(db); });
+}
+function _pmRenderInternal(db){
   const keys=Object.keys(db).sort((a,b)=>new Date(db[b].savedAt)-new Date(db[a].savedAt));
   const el=document.getElementById('sb-list');
   if(!el)return;
@@ -3697,6 +3785,7 @@ setInterval(()=>{ if(ST.startDate && _curId) pmSaveCurrent(); }, 90000);
 // Init
 window.onload=()=>{
   licCheckOnLoad(); // License gate — check before anything
+  _migrateToFile(); // Migrate localStorage → file (Electron only)
   applyLang(); // Apply saved language
   // Start notification checkers
   setInterval(checkAppointmentNotifications, 60000);
@@ -3709,8 +3798,10 @@ window.onload=()=>{
   // Init Project Manager
   pmRender();
   try{
-    const lastId = localStorage.getItem(_PL);
-    if(lastId){ const db=_dbGet(); if(db[lastId]) pmLoad(lastId); }
+    _dbReadLastAsync().then(lastId=>{
+      const lid = lastId || localStorage.getItem(_PL)||'';
+      if(lid){ _dbGetAsync().then(db=>{ if(db[lid]) pmLoad(lid); }); }
+    });
   }catch(e){}
 };
 
