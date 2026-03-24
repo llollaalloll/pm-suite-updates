@@ -740,10 +740,11 @@ body { overflow: hidden; }
         </tr></thead>
         <tbody id="tasks-body"></tbody>
       </table>
-      <div class="add-task-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 1fr 1fr auto">
+      <div class="add-task-row" style="grid-template-columns:2fr 1.2fr 1fr 1fr 1fr 1fr 1fr auto">
         <div class="fg"><label>ชื่องาน</label><input id="new-task-name" placeholder="เช่น งานฉาบปูน"></div>
         <div class="fg"><label>ผู้รับผิดชอบ</label><input id="new-task-assignee" placeholder="เช่น สมชาย / ทีม A"></div>
         <div class="fg"><label>วันเริ่ม</label><input type="date" id="new-task-start"></div>
+        <div class="fg"><label>วันสิ้นสุด</label><input type="date" id="new-task-end"></div>
         <div class="fg"><label>วันทำงาน</label><input type="number" id="new-task-dur" value="14" min="1" max="365"></div>
         <div class="fg"><label>% เสร็จ</label><input type="number" id="new-task-prog" value="0" min="0" max="100"></div>
         <div class="fg"><label>สี</label><input type="color" id="new-task-color" value="#2e74b8" style="height:36px;padding:2px 4px;"></div>
@@ -2266,17 +2267,27 @@ function addTask(){
   if(!name){alert('กรุณาใส่ชื่องานครับ');return;}
   if(!ST.startDate){alert('กรุณา Generate Schedule ก่อนครับ');return;}
   const si=document.getElementById('new-task-start').value;
-  const wd=parseInt(document.getElementById('new-task-dur').value)||14;
+  const ei=document.getElementById('new-task-end').value;
+  let wd=parseInt(document.getElementById('new-task-dur').value)||14;
   const prog=parseInt(document.getElementById('new-task-prog').value)||0;
   const color=document.getElementById('new-task-color').value;
   const assignee=document.getElementById('new-task-assignee').value.trim();
   const ts=si?new Date(si):new Date(ST.startDate);
-  const te=addWD(ts,wd,ST.calType);
+  let te;
+  if(ei){
+    // ถ้ากรอกวันสิ้นสุด — ใช้ค่านั้น และคำนวณวันทำงานย้อนกลับ
+    te=new Date(ei);
+    wd=countWD(ts,te,ST.calType)||wd;
+  } else {
+    // ถ้าไม่กรอกวันสิ้นสุด — คำนวณจากวันทำงาน
+    te=addWD(ts,wd,ST.calType);
+  }
   ST.tasks.push({id:ST.tasks.length,name,startDate:ts,endDate:te,wd,prog,color,assignee,subtasks:[],expanded:false});
   renderTasks();
   renderCal();
   document.getElementById('new-task-name').value='';
   document.getElementById('new-task-assignee').value='';
+  document.getElementById('new-task-end').value='';
 }
 
 // ============================================================
