@@ -3052,9 +3052,9 @@ function copyReport(){
 
 function printReport(){
   const w=window.open('','_blank');
-  w.document.write(`<html><head><title>Report</title><style>body{font-family:monospace;padding:40px;font-size:13px;line-height:1.7;white-space:pre-wrap;}</style></head><body>${document.getElementById('report-out').textContent}
+  w.document.write(`<html><head><title>Report</title><style>body{font-family:monospace;padding:40px;font-size:13px;line-height:1.7;white-space:pre-wrap;}<\/style><\/head><body>${document.getElementById('report-out').textContent}
 
-</body></html>`);
+<\/body><\/html>`);
   w.document.close();w.print();
 }
 
@@ -3227,7 +3227,7 @@ function buildGanttHTML(size, forPDF){
     @page { size:${size} landscape; margin:5mm; }
   }
 </style>
-</head><body>
+<\/head><body>
 
 <!-- HEADER -->
 <div style="background:#faf9f6;border-bottom:3px solid #c47f00;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;height:${headerH}px">
@@ -3280,7 +3280,7 @@ function buildGanttHTML(size, forPDF){
 
 
 
-</body></html>`;
+<\/body><\/html>`;
   return {html, pageW, pageH};
 }
 
@@ -3439,14 +3439,14 @@ body{background:#fff;font-family:'IBM Plex Sans Thai',sans-serif;padding:28px 36
 .ftr{margin-top:24px;padding-top:8px;border-top:1px solid #ddd9d0;font-size:9px;color:#9e9a92;display:flex;justify-content:space-between;}
 @media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
 @page{size:A4 portrait;margin:10mm;}}
-</style></head><body>
+<\/style><\/head><body>
 <div class="hdr"><div class="lb"><div class="lb-box">PM</div><div><div class="pt">${rProj}</div><div class="ps">AI Construction PM — Report</div></div></div>
 <div class="meta"><div>วันที่: ${rDate}</div><div>ผู้จัดทำ: ${rAuthor}</div><div>พิมพ์: ${ds}</div></div></div>
 <div class="body">${txt.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
 <div class="ftr"><span>AI Construction PM Suite</span><span>${rProj} • ${ds}</span></div>
 
 
-</body></html>`;
+<\/body><\/html>`;
     const iframe = document.createElement('iframe');
     iframe.style.cssText='position:fixed;left:-9999px;top:0;width:794px;height:1122px;border:none';
     document.body.appendChild(iframe);
