@@ -582,6 +582,66 @@ body { overflow: hidden; }
 #lic-footer a{color:#C47F00;}
 @keyframes lic-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 .lic-shake{animation:lic-shake 0.4s ease;}
+/* ═══ CUSTOM DATE PICKER ═══ */
+.dp-wrap{position:relative;display:inline-block;width:100%;}
+.dp-input{
+  background:var(--bg2);border:1px solid var(--border2);color:var(--text2);
+  font-family:inherit;font-size:10px;padding:2px 5px;border-radius:3px;
+  outline:none;width:100%;cursor:pointer;text-align:left;
+  display:flex;align-items:center;gap:4px;white-space:nowrap;
+  transition:border-color .15s;
+}
+.dp-input:hover,.dp-input.open{border-color:var(--accent);}
+.dp-calendar{
+  position:fixed;z-index:9000;
+  background:var(--bg2);border:1px solid var(--border2);border-radius:10px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.35);min-width:252px;
+  display:none;flex-direction:column;overflow:hidden;
+}
+.dp-calendar.show{display:flex;}
+.dp-cal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;background:var(--bg3);border-bottom:1px solid var(--border);
+}
+.dp-cal-title{font-size:12px;font-weight:700;color:var(--text);cursor:pointer;}
+.dp-cal-nav{background:none;border:none;color:var(--text2);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px;}
+.dp-cal-nav:hover{background:var(--bg2);color:var(--accent);}
+.dp-cal-grid{padding:6px 8px 8px;}
+.dp-dow-row{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:3px;}
+.dp-dow{font-size:8px;font-weight:700;color:var(--text3);text-align:center;padding:2px 0;text-transform:uppercase;letter-spacing:.5px;}
+.dp-dow:last-child{color:var(--red);opacity:.7;}  /* อา */
+.dp-days-row{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;}
+.dp-day{
+  aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border-radius:5px;cursor:pointer;font-size:11px;font-weight:500;
+  color:var(--text2);position:relative;transition:all .1s;min-height:30px;
+}
+.dp-day:hover:not(.dp-empty):not(.dp-disabled){background:var(--bg3);color:var(--text);}
+.dp-day.dp-today{border:1.5px solid var(--accent);color:var(--accent);font-weight:700;}
+.dp-day.dp-selected{background:var(--accent);color:#1A1208;font-weight:700;}
+.dp-day.dp-selected:hover{background:var(--accent);opacity:.9;}
+.dp-day.dp-wanphra{background:rgba(109,79,194,0.12);color:var(--purple);}
+.dp-day.dp-wanphra.dp-selected{background:var(--accent);}
+.dp-day.dp-holiday{background:rgba(192,57,43,0.1);color:var(--red);}
+.dp-day.dp-holiday.dp-selected{background:var(--accent);}
+.dp-day.dp-sunday{color:var(--red);opacity:.8;}
+.dp-day.dp-other-month{opacity:.25;}
+.dp-day.dp-disabled{opacity:.3;cursor:not-allowed;}
+.dp-day.dp-empty{cursor:default;}
+.dp-day-num{font-size:11px;line-height:1;}
+.dp-day-dot{width:4px;height:4px;border-radius:50%;margin-top:1px;}
+.dp-day.dp-wanphra .dp-day-dot{background:var(--purple);}
+.dp-day.dp-holiday .dp-day-dot{background:var(--red);}
+.dp-day.dp-selected .dp-day-dot{background:rgba(26,18,8,.5);}
+.dp-legend{display:flex;gap:10px;padding:4px 12px 8px;border-top:1px solid var(--border);flex-wrap:wrap;}
+.dp-legend-item{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--text3);}
+.dp-legend-dot{width:7px;height:7px;border-radius:50%;}
+.dp-today-btn{
+  background:none;border:none;font-size:10px;color:var(--accent);cursor:pointer;
+  padding:0 12px 8px;text-align:center;font-family:inherit;
+}
+.dp-today-btn:hover{text-decoration:underline;}
+
 /* ═══════ PROJECT ACCOUNTING MODULE ═══════ */
 /* Budget Override Panel */
 .acct-budget-panel{
@@ -2004,15 +2064,11 @@ function renderTasks(){
             onfocus="${subFocus}" onblur="${subBlur}">
         </td>
         <td style="border-bottom:1px solid var(--border);min-width:105px">
-          <input type="date" value="${sStartVal}" onchange="onSubStartChange(${i},${j},this.value)"
-            style="background:var(--bg2);border:1px solid var(--border2);color:var(--text2);font-family:inherit;
-            font-size:10px;padding:2px 5px;border-radius:3px;outline:none;width:100%;cursor:pointer"
+          <button type="button" class="dp-input" style="font-size:10px;padding:2px 5px;border-radius:3px;width:100%;min-height:24px" onclick="dpOpen(this,'${sStartVal}',(v)=>{onSubStartChange(${i},${j},v);dpUpdateBtn(this,v)})"><span class="dp-input-text">${sStartVal?dpFmtDisplay(sStartVal):'วันเริ่ม'}</span><span style="margin-left:auto;font-size:9px;opacity:.4">▼</span></button>
             onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
         </td>
         <td style="border-bottom:1px solid var(--border);min-width:105px">
-          <input type="date" value="${sEndVal}" onchange="onSubEndChange(${i},${j},this.value)"
-            style="background:var(--bg2);border:1px solid var(--border2);color:var(--text2);font-family:inherit;
-            font-size:10px;padding:2px 5px;border-radius:3px;outline:none;width:100%;cursor:pointer"
+          <button type="button" class="dp-input" style="font-size:10px;padding:2px 5px;border-radius:3px;width:100%;min-height:24px" onclick="dpOpen(this,'${sEndVal}',(v)=>{onSubEndChange(${i},${j},v);dpUpdateBtn(this,v)})"><span class="dp-input-text">${sEndVal?dpFmtDisplay(sEndVal):'วันสิ้นสุด'}</span><span style="margin-left:auto;font-size:9px;opacity:.4">▼</span></button>
             onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
         </td>
         <td style="border-bottom:1px solid var(--border);min-width:60px;text-align:center">
@@ -2101,17 +2157,11 @@ function renderTasks(){
                 onfocus="${ssFocus}" onblur="${ssBlur}">
             </td>
             <td style="border-bottom:1px solid var(--border);min-width:105px">
-              <input type="date" value="${ssStart}"
-                onchange="ST.tasks[${i}].subtasks[${j}].subtasks[${k}].startDate=this.value?new Date(this.value):null;recalcSub2FromSubs3(${i},${j});renderTasks()"
-                style="background:var(--bg2);border:1px solid var(--border2);color:var(--text2);font-family:inherit;
-                font-size:10px;padding:2px 5px;border-radius:3px;outline:none;width:100%;cursor:pointer"
+              <button type="button" class="dp-input" style="font-size:10px;padding:2px 5px;border-radius:3px;width:100%;min-height:24px" onclick="dpOpen(this,'${ssStart}',(v)=>{ST.tasks[${i}].subtasks[${j}].subtasks[${k}].startDate=v?new Date(v):null;recalcSub2FromSubs3(${i},${j});renderTasks();dpUpdateBtn(this,v)})"><span class="dp-input-text">${ssStart?dpFmtDisplay(ssStart):'วันเริ่ม'}</span><span style="margin-left:auto;font-size:9px;opacity:.4">▼</span></button>
                 onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
             </td>
             <td style="border-bottom:1px solid var(--border);min-width:105px">
-              <input type="date" value="${ssEnd}"
-                onchange="const nv=this.value;if(nv){const s3=ST.tasks[${i}].subtasks[${j}].subtasks[${k}];s3.endDate=new Date(nv);s3.wd=countWD(new Date(s3.startDate),new Date(nv),ST.calType)||s3.wd;}recalcSub2FromSubs3(${i},${j});renderTasks()"
-                style="background:var(--bg2);border:1px solid var(--border2);color:var(--text2);font-family:inherit;
-                font-size:10px;padding:2px 5px;border-radius:3px;outline:none;width:100%;cursor:pointer"
+              <button type="button" class="dp-input" style="font-size:10px;padding:2px 5px;border-radius:3px;width:100%;min-height:24px" onclick="dpOpen(this,'${ssEnd}',(v)=>{if(v){const s3=ST.tasks[${i}].subtasks[${j}].subtasks[${k}];s3.endDate=new Date(v);s3.wd=countWD(new Date(s3.startDate),new Date(v),ST.calType);recalcSub2FromSubs3(${i},${j});renderTasks();}dpUpdateBtn(this,v)})"><span class="dp-input-text">${ssEnd?dpFmtDisplay(ssEnd):'วันสิ้นสุด'}</span><span style="margin-left:auto;font-size:9px;opacity:.4">▼</span></button>
                 onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
             </td>
             <td style="border-bottom:1px solid var(--border);min-width:60px;text-align:center">
@@ -2177,10 +2227,8 @@ function renderTasks(){
                 style="flex:1;min-width:100px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:inherit;font-size:10px;padding:3px 6px;border-radius:4px;outline:none;">
               <input type="text" id="ss2assignee-${i}-${j}" placeholder="ผู้รับผิดชอบ" data-i18n="col_assignee"
                 style="width:88px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:inherit;font-size:10px;padding:3px 6px;border-radius:4px;outline:none;">
-              <input type="date" id="ss2start-${i}-${j}"
-                style="width:120px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:inherit;font-size:10px;padding:3px 6px;border-radius:4px;outline:none;" title="วันเริ่ม">
-              <input type="date" id="ss2end-${i}-${j}"
-                style="width:120px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:inherit;font-size:10px;padding:3px 6px;border-radius:4px;outline:none;" title="วันสิ้นสุด">
+              <button type="button" class="dp-input" id="ss2start-${i}-${j}" style="width:120px;font-size:10px;padding:2px 5px;border-radius:3px;min-height:24px" onclick="dpOpen(this,document.getElementById('ss2start-${i}-${j}')?.dataset?.val||'',(v)=>{if(v){const el=document.getElementById('ss2start-${i}-${j}');if(el)el.dataset.val=v;ST.tasks[${i}].subtasks[${j}].startDate=new Date(v);recalcTaskFromSubs(${i});renderTasks();}dpUpdateBtn(this,v)})"><span class="dp-input-text">เริ่มต้น</span><span style="margin-left:auto;font-size:9px;opacity:.4">▼</span></button> title="วันเริ่ม">
+              <button type="button" class="dp-input" id="ss2end-${i}-${j}" style="width:120px;font-size:10px;padding:2px 5px;border-radius:3px;min-height:24px" onclick="dpOpen(this,document.getElementById('ss2end-${i}-${j}')?.dataset?.val||'',(v)=>{if(v){const el=document.getElementById('ss2end-${i}-${j}');if(el)el.dataset.val=v;ST.tasks[${i}].subtasks[${j}].endDate=new Date(v);recalcTaskFromSubs(${i});renderTasks();}dpUpdateBtn(this,v)})"><span class="dp-input-text">สิ้นสุด</span><span style="margin-left:auto;font-size:9px;opacity:.4">▼</span></button> title="วันสิ้นสุด">
               <input type="number" id="ss2wd-${i}-${j}" value="3" min="1" max="365"
                 style="width:38px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:inherit;font-size:10px;padding:3px 6px;border-radius:4px;outline:none;" title="วันทำงาน">
               <span style="font-size:10px;color:var(--text3)">วัน</span>
@@ -2222,10 +2270,8 @@ function renderTasks(){
                 style="flex:1;min-width:100px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:inherit;font-size:10px;padding:3px 6px;border-radius:4px;outline:none;">
               <input type="text" id="ss2assignee-${i}-${j}" placeholder="ผู้รับผิดชอบ"
                 style="width:88px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:inherit;font-size:10px;padding:3px 6px;border-radius:4px;outline:none;">
-              <input type="date" id="ss2start-${i}-${j}"
-                style="width:120px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:inherit;font-size:10px;padding:3px 6px;border-radius:4px;outline:none;" title="วันเริ่ม">
-              <input type="date" id="ss2end-${i}-${j}"
-                style="width:120px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:inherit;font-size:10px;padding:3px 6px;border-radius:4px;outline:none;" title="วันสิ้นสุด">
+              <button type="button" class="dp-input" id="ss2start-${i}-${j}" style="width:120px;font-size:10px;padding:2px 5px;border-radius:3px;min-height:24px" onclick="dpOpen(this,document.getElementById('ss2start-${i}-${j}')?.dataset?.val||'',(v)=>{if(v){const el=document.getElementById('ss2start-${i}-${j}');if(el)el.dataset.val=v;ST.tasks[${i}].subtasks[${j}].startDate=new Date(v);recalcTaskFromSubs(${i});renderTasks();}dpUpdateBtn(this,v)})"><span class="dp-input-text">เริ่มต้น</span><span style="margin-left:auto;font-size:9px;opacity:.4">▼</span></button> title="วันเริ่ม">
+              <button type="button" class="dp-input" id="ss2end-${i}-${j}" style="width:120px;font-size:10px;padding:2px 5px;border-radius:3px;min-height:24px" onclick="dpOpen(this,document.getElementById('ss2end-${i}-${j}')?.dataset?.val||'',(v)=>{if(v){const el=document.getElementById('ss2end-${i}-${j}');if(el)el.dataset.val=v;ST.tasks[${i}].subtasks[${j}].endDate=new Date(v);recalcTaskFromSubs(${i});renderTasks();}dpUpdateBtn(this,v)})"><span class="dp-input-text">สิ้นสุด</span><span style="margin-left:auto;font-size:9px;opacity:.4">▼</span></button> title="วันสิ้นสุด">
               <input type="number" id="ss2wd-${i}-${j}" value="3" min="1" max="365"
                 style="width:38px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:inherit;font-size:10px;padding:3px 6px;border-radius:4px;outline:none;" title="วันทำงาน">
               <span style="font-size:10px;color:var(--text3)">วัน</span>
@@ -2259,10 +2305,8 @@ function renderTasks(){
             style="width:130px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:inherit;font-size:10px;padding:3px 6px;border-radius:4px;outline:none;font-size:11px;">
           <input type="text" id="sassignee-${i}" placeholder="ผู้รับผิดชอบ"
             style="width:90px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:inherit;font-size:10px;padding:3px 6px;border-radius:4px;outline:none;font-size:11px;">
-          <input type="date" id="sstart-${i}"
-            style="width:118px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:inherit;font-size:10px;padding:3px 6px;border-radius:4px;outline:none;font-size:11px;" title="วันเริ่ม">
-          <input type="date" id="send-${i}"
-            style="width:118px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:inherit;font-size:10px;padding:3px 6px;border-radius:4px;outline:none;font-size:11px;" title="วันสิ้นสุด">
+          <button type="button" class="dp-input" id="sstart-${i}" style="width:118px;font-size:10px;padding:3px 5px;border-radius:3px;min-height:26px" onclick="dpOpen(this,this.dataset.val||'',(v)=>{this.dataset.val=v;dpUpdateBtn(this,v)})"><span class="dp-input-text">วว/ดด/ปปปป</span><span style="margin-left:auto;font-size:9px;opacity:.4">▼</span></button> title="วันเริ่ม">
+          <button type="button" class="dp-input" id="send-${i}" style="width:118px;font-size:10px;padding:3px 5px;border-radius:3px;min-height:26px" onclick="dpOpen(this,this.dataset.val||'',(v)=>{this.dataset.val=v;dpUpdateBtn(this,v)})"><span class="dp-input-text">วว/ดด/ปปปป</span><span style="margin-left:auto;font-size:9px;opacity:.4">▼</span></button> title="วันสิ้นสุด">
           <input type="number" id="swd-${i}" value="5" min="1" max="365"
             style="width:42px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:inherit;font-size:10px;padding:3px 6px;border-radius:4px;outline:none;font-size:11px;" title="วันทำงาน">
           <span style="font-size:10px;color:var(--text3)">วัน</span>
@@ -5311,6 +5355,210 @@ function acctUpdateBudgetPanel(projBudget, totalExp) {
   }
 }
 
+
+// ════════════════════════════════════════════════════════════
+// CUSTOM DATE PICKER — แสดงวันพระ + วันหยุด
+// ════════════════════════════════════════════════════════════
+let _dp = {
+  el: null,       // calendar DOM
+  input: null,    // trigger button
+  value: null,    // current Date
+  onChange: null, // callback(dateStr)
+  viewY: 0,
+  viewM: 0,
+};
+
+
+function dpUpdateBtn(btn,dateStr){const sp=btn?btn.querySelector('.dp-input-text'):null;if(sp)sp.textContent=dpFmtDisplay(dateStr);}
+function dpFmtDisplay(dateStr){
+  if(!dateStr) return '— เลือกวันที่ —';
+  const d = new Date(dateStr + 'T00:00:00');
+  if(isNaN(d)) return '— เลือกวันที่ —';
+  const dd = d.getDate(), mm = d.getMonth()+1, yy = d.getFullYear()+543;
+  const mn = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return dd + ' ' + mn[d.getMonth()] + ' ' + yy;
+}
+
+function dpOpen(triggerEl, currentVal, onChangeFn) {
+  // ปิด calendar เก่าก่อน
+  dpClose();
+  
+  const cal = document.getElementById('dp-global-calendar');
+  _dp.input = triggerEl;
+  _dp.onChange = onChangeFn;
+  _dp.value = currentVal || null;
+  
+  const d = currentVal ? new Date(currentVal + 'T00:00:00') : new Date();
+  _dp.viewY = d.getFullYear();
+  _dp.viewM = d.getMonth();
+  
+  dpRenderCalendar();
+  
+  // Position calendar near trigger
+  const rect = triggerEl.getBoundingClientRect();
+  const calW = 252;
+  let left = rect.left;
+  let top = rect.bottom + 4;
+  
+  // ป้องกันออกนอกหน้าจอ
+  if(left + calW > window.innerWidth - 8) left = window.innerWidth - calW - 8;
+  if(top + 340 > window.innerHeight) top = rect.top - 344;
+  
+  cal.style.left = left + 'px';
+  cal.style.top = top + 'px';
+  cal.classList.add('show');
+  triggerEl.classList.add('open');
+  
+  _dp.el = cal;
+}
+
+function dpClose() {
+  const cal = document.getElementById('dp-global-calendar');
+  if(cal) cal.classList.remove('show');
+  if(_dp.input) _dp.input.classList.remove('open');
+  _dp.el = null;
+}
+
+function dpNav(delta) {
+  _dp.viewM += delta;
+  if(_dp.viewM < 0) { _dp.viewM = 11; _dp.viewY--; }
+  if(_dp.viewM > 11) { _dp.viewM = 0; _dp.viewY++; }
+  dpRenderCalendar();
+}
+
+function dpSelectToday() {
+  const today = new Date();
+  const str = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+  dpSelectDate(str);
+}
+
+function dpSelectDate(dateStr) {
+  _dp.value = dateStr;
+  if(_dp.onChange) _dp.onChange(dateStr);
+  // อัปเดต button text
+  if(_dp.input) {
+    const span = _dp.input.querySelector('.dp-input-text');
+    if(span) span.textContent = dpFmtDisplay(dateStr);
+  }
+  dpClose();
+}
+
+function dpRenderCalendar() {
+  const cal = document.getElementById('dp-global-calendar');
+  if(!cal) return;
+  
+  const y = _dp.viewY, m = _dp.viewM;
+  const ct = (typeof ST !== 'undefined' && ST.calType) ? ST.calType : 'lao';
+  const today = new Date();
+  const todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+  
+  const thMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  
+  // First day of month & days count
+  const firstDay = new Date(y, m, 1);
+  const lastDay = new Date(y, m+1, 0);
+  const startDow = firstDay.getDay(); // 0=sun
+  const daysInMonth = lastDay.getDate();
+  
+  // Adjust: week starts Monday (จ=0)
+  const offset = (startDow === 0) ? 6 : startDow - 1;
+  
+  // Build day cells
+  let cells = [];
+  // Prev month padding
+  for(let i = 0; i < offset; i++) {
+    const pd = new Date(y, m, -offset + i + 1);
+    cells.push({ date: pd, otherMonth: true });
+  }
+  // Current month
+  for(let d = 1; d <= daysInMonth; d++) {
+    cells.push({ date: new Date(y, m, d), otherMonth: false });
+  }
+  // Next month padding
+  while(cells.length % 7 !== 0) {
+    const nd = new Date(y, m+1, cells.length - (offset + daysInMonth) + 1);
+    cells.push({ date: nd, otherMonth: true });
+  }
+  
+  // Render cells
+  const cellsHtml = cells.map(cell => {
+    const cd = cell.date;
+    const dateStr = cd.getFullYear() + '-' + String(cd.getMonth()+1).padStart(2,'0') + '-' + String(cd.getDate()).padStart(2,'0');
+    const isToday = dateStr === todayStr;
+    const isSelected = dateStr === _dp.value;
+    const isSun = cd.getDay() === 0;
+    
+    // Check วันพระ (ขึ้น/แรม 15 ค่ำ)
+    const wpInfo = typeof _getWpInfo !== 'undefined' ? _getWpInfo(cd) : {full:false,new:false};
+    const isWanPhra = wpInfo.full || wpInfo.new;
+    
+    // Check วันหยุดราชการ
+    const hol = typeof getPubHol !== 'undefined' ? getPubHol(cd, ct) : null;
+    const isHoliday = !!hol;
+    
+    let cls = 'dp-day';
+    if(cell.otherMonth) cls += ' dp-other-month';
+    if(isToday) cls += ' dp-today';
+    if(isSelected) cls += ' dp-selected';
+    if(isSun && !cell.otherMonth) cls += ' dp-sunday';
+    if(isWanPhra && !cell.otherMonth) cls += ' dp-wanphra';
+    if(isHoliday && !cell.otherMonth) cls += ' dp-holiday';
+    
+    // Tooltip
+    let title = '';
+    if(isWanPhra) title = wpInfo.full ? 'วันพระ ขึ้น 15 ค่ำ' : 'วันพระ แรม 15 ค่ำ';
+    if(isHoliday) title = hol;
+    
+    const dot = (isWanPhra || isHoliday) && !cell.otherMonth ? '<div class="dp-day-dot"></div>' : '';
+    const onclick = cell.otherMonth ? '' : `onclick="dpSelectDate('${dateStr}')"`;
+    
+    return `<div class="${cls}" ${onclick} title="${title}">
+      <span class="dp-day-num">${cd.getDate()}</span>
+      ${dot}
+    </div>`;
+  }).join('');
+  
+  cal.innerHTML = `
+    <div class="dp-cal-header">
+      <button class="dp-cal-nav" onclick="dpNav(-1)">‹</button>
+      <span class="dp-cal-title">${thMonths[m]} ${y+543}</span>
+      <button class="dp-cal-nav" onclick="dpNav(1)">›</button>
+    </div>
+    <div class="dp-cal-grid">
+      <div class="dp-dow-row">
+        ${['จ','อ','พ','พฤ','ศ','ส','อา'].map(d=>`<div class="dp-dow">${d}</div>`).join('')}
+      </div>
+      <div class="dp-days-row">${cellsHtml}</div>
+    </div>
+    <div class="dp-legend">
+      <div class="dp-legend-item"><div class="dp-legend-dot" style="background:var(--purple)"></div>วันพระ</div>
+      <div class="dp-legend-item"><div class="dp-legend-dot" style="background:var(--red)"></div>วันหยุดราชการ</div>
+      <div class="dp-legend-item"><div class="dp-legend-dot" style="background:var(--accent);border:1.5px solid var(--accent)"></div>วันนี้</div>
+    </div>
+    <button class="dp-today-btn" onclick="dpSelectToday()">📅 ไปวันนี้</button>
+  `;
+}
+
+// ปิด calendar เมื่อคลิกนอก
+document.addEventListener('click', function(e) {
+  if(!_dp.el) return;
+  const cal = document.getElementById('dp-global-calendar');
+  if(!cal) return;
+  if(cal.contains(e.target)) return;
+  if(_dp.input && _dp.input.contains(e.target)) return;
+  dpClose();
+}, true);
+
+// ════════════════════════════════════════════════════════════
+// Helper: แทน <input type=date> ด้วย custom picker button
+// ════════════════════════════════════════════════════════════
+function makeDatePicker(currentVal, onChangeFn, extraStyle) {
+  const style = extraStyle || 'font-size:10px;padding:2px 5px;border-radius:3px;outline:none;width:100%;cursor:pointer';
+  const displayText = dpFmtDisplay(currentVal);
+  // return HTML string สำหรับ inject ใน template literals
+  return `<div class="dp-wrap"><button type="button" class="dp-input" style="${style}" onclick="dpOpen(this,'${currentVal||''}',${onChangeFn})"><span class="dp-input-text">${displayText}</span><span style="margin-left:auto;font-size:9px;opacity:.5">▼</span></button></div>`;
+}
+
 // Load saved lang on start
 (function(){
   try{
@@ -5889,6 +6137,7 @@ async function acctExportPDF(){
 </div><!-- /sb-row -->
 </div><!-- /sb-overlay -->
 <div id="pm-toast"></div>
+<div id="dp-global-calendar" class="dp-calendar"></div>
 
 
 <!-- ═══ LICENSE GATE OVERLAY ═══ -->
