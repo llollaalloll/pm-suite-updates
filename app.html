@@ -5906,12 +5906,82 @@ function acctRenderMonthlyChart(txns){
 }
 function acctRenderTaskBreakdown(txns,projData){
   const body=document.getElementById('acct-task-body');if(!body)return;
-  const tB={};if(projData&&projData.state&&projData.state.tasks)projData.state.tasks.forEach(t=>{let b=0;if(t.subtasks&&t.subtasks.length>0)t.subtasks.forEach(s=>{b+=(s.budgetMat||0)+(s.budgetLab||0);});else b=(t.budgetMat||0)+(t.budgetLab||0);if(b>0)tB[t.name]=b;});
-  const tA={};txns.filter(t=>t.type==='expense'&&t.task).forEach(t=>{tA[t.task]=(tA[t.task]||0)+t.amount;});
-  const allT=[...new Set([...Object.keys(tB),...Object.keys(tA)])];
-  if(!allT.length){body.innerHTML='<tr><td colspan="5"><div class="acct-empty">ยังไม่มีข้อมูล</div></td></tr>';return;}
-  const c=getCurr();const fmt=n=>c.sym+' '+toDisplay(n).toLocaleString('en-US',{minimumFractionDigits:2});
-  body.innerHTML=allT.map(name=>{const b=tB[name]||0;const a=tA[name]||0;const d=b-a;const p=b>0?(a/b*100):(a>0?999:0);const bW=Math.min(100,p);const bC=p>100?'var(--red)':p>80?'var(--accent)':'var(--green)';return '<tr><td style="font-size:12px">'+escHtml(name)+'</td><td class="acct-pl-amt acc">'+(b>0?fmt(b):'—')+'</td><td class="acct-pl-amt '+(a>0?'neg':'')+'">'+(a>0?'−'+fmt(a):'—')+'</td><td class="acct-pl-amt '+(b>0?(d>=0?'pos':'neg'):'')+'">'+(b>0?(d>=0?'+':'-')+fmt(Math.abs(d)):'—')+'</td><td><div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+bW+'%;background:'+bC+';border-radius:3px"></div></div><span style="font-size:10px;font-family:IBM Plex Mono,monospace;color:'+bC+';white-space:nowrap">'+(b>0?p.toFixed(1)+'%':(a>0?'ไม่มีงบ':'—'))+'</span></div></td></tr>';}).join('');
+
+  // ════ สร้าง ordered list ตาม task level เหมือน Task Schedule ════
+  // รูปแบบ: [{name, budget, level, indent}]
+  const orderedRows=[];
+  const tB={};
+
+  if(projData&&projData.state&&projData.state.tasks){
+    projData.state.tasks.forEach(t=>{
+      // Level 1: Task หลัก
+      let taskBgt=0;
+      if(t.subtasks&&t.subtasks.length>0){
+        // มี subtask → budget = sum ของ subtasks
+        t.subtasks.forEach(s=>{
+          let subBgt=0;
+          if(s.subtasks&&s.subtasks.length>0){
+            s.subtasks.forEach(ss=>{subBgt+=(ss.budgetMat||0)+(ss.budgetLab||0);});
+          } else {
+            subBgt=(s.budgetMat||0)+(s.budgetLab||0);
+          }
+          taskBgt+=subBgt;
+          tB[s.name]=subBgt;
+          orderedRows.push({name:s.name,budget:subBgt,level:2,indent:16});
+          // Level 3: sub2
+          if(s.subtasks&&s.subtasks.length>0){
+            s.subtasks.forEach(ss=>{
+              const ssBgt=(ss.budgetMat||0)+(ss.budgetLab||0);
+              tB[ss.name]=ssBgt;
+              orderedRows.push({name:ss.name,budget:ssBgt,level:3,indent:32});
+            });
+          }
+        });
+      } else {
+        taskBgt=(t.budgetMat||0)+(t.budgetLab||0);
+      }
+      tB[t.name]=taskBgt;
+      orderedRows.unshift({name:t.name,budget:taskBgt,level:1,indent:0});
+    });
+  }
+
+  // เพิ่ม task ที่อยู่ใน transactions แต่ไม่มีใน projData (กรอกเองใน Accounting)
+  const tA={};
+  txns.filter(t=>t.type==='expense'&&t.task).forEach(t=>{tA[t.task]=(tA[t.task]||0)+t.amount;});
+  Object.keys(tA).forEach(name=>{
+    if(!tB[name]) orderedRows.push({name,budget:0,level:1,indent:0});
+  });
+
+  if(!orderedRows.length){
+    body.innerHTML='<tr><td colspan="5"><div class="acct-empty">ยังไม่มีข้อมูล</div></td></tr>';
+    return;
+  }
+
+  const c=getCurr();
+  const fmt=n=>c.sym+' '+toDisplay(n).toLocaleString('en-US',{minimumFractionDigits:2});
+
+  body.innerHTML=orderedRows.map(row=>{
+    const b=row.budget||0;
+    const a=tA[row.name]||0;
+    const d=b-a;
+    const p=b>0?(a/b*100):(a>0?999:0);
+    const bW=Math.min(100,p);
+    const bC=p>100?'var(--red)':p>80?'var(--accent)':'var(--green)';
+    // indent ตาม level
+    const nameStyle='font-size:'+(row.level===1?'12':'11')+'px;padding-left:'+row.indent+'px;'+(row.level===1?'font-weight:600;':'color:var(--text2);');
+    const rowStyle=row.level===1?'':'background:rgba(255,255,255,0.012);';
+    return '<tr style="'+rowStyle+'"><td style="'+nameStyle+'">'+
+      (row.level>1?'<span style="color:var(--text3);margin-right:4px">'+( row.level===2?'└':'  └')+'</span>':'')+
+      escHtml(row.name)+'</td>'+
+      '<td class="acct-pl-amt acc">'+(b>0?fmt(b):'—')+'</td>'+
+      '<td class="acct-pl-amt '+(a>0?'neg':'')+'">'+(a>0?'−'+fmt(a):'—')+'</td>'+
+      '<td class="acct-pl-amt '+(b>0?(d>=0?'pos':'neg'):'')+'">'+(b>0?(d>=0?'+':'-')+fmt(Math.abs(d)):'—')+'</td>'+
+      '<td><div style="display:flex;align-items:center;gap:6px">'+
+      '<div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden">'+
+      '<div style="height:100%;width:'+bW+'%;background:'+bC+';border-radius:3px"></div></div>'+
+      '<span style="font-size:10px;font-family:IBM Plex Mono,monospace;color:'+bC+';white-space:nowrap">'+
+      (b>0?p.toFixed(1)+'%':(a>0?'ไม่มีงบ':'—'))+'</span></div></td></tr>';
+  }).join('');
 }
 async function acctExportExcel(){
   if(!_acctProjId){pmToast('กรุณาเลือกโปรเจกต์','var(--red)');return;}
