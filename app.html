@@ -582,6 +582,25 @@ body { overflow: hidden; }
 @keyframes lic-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 .lic-shake{animation:lic-shake 0.4s ease;}
 /* ═══════ PROJECT ACCOUNTING MODULE ═══════ */
+/* Budget Override Panel */
+.acct-budget-panel{
+  background:var(--bg2);border:1px solid rgba(196,127,0,0.35);border-radius:9px;
+  padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+}
+.acct-budget-label{font-size:11px;font-weight:700;color:var(--accent);white-space:nowrap;}
+.acct-budget-src{font-size:10px;color:var(--text3);margin-left:4px;}
+.acct-budget-inp{
+  background:var(--bg3);border:1.5px solid rgba(196,127,0,0.4);color:var(--text);
+  font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;
+  padding:7px 12px;border-radius:6px;outline:none;width:160px;text-align:right;
+  transition:border-color .2s;
+}
+.acct-budget-inp:focus{border-color:var(--accent);}
+.acct-budget-result{display:flex;gap:16px;align-items:center;margin-left:auto;flex-wrap:wrap;}
+.acct-budget-stat{display:flex;flex-direction:column;gap:2px;text-align:right;}
+.acct-budget-stat-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;}
+.acct-budget-stat-val{font-size:15px;font-weight:700;font-family:'IBM Plex Mono',monospace;}
+
 #acct-lt-gate{display:none;flex-direction:column;align-items:center;justify-content:center;height:calc(100vh - 220px);gap:18px;}
 #acct-lt-gate.show{display:flex;}
 .acct-gate-box{background:var(--bg2);border:2px solid var(--accent);border-radius:14px;padding:32px 40px;text-align:center;max-width:460px;box-shadow:0 12px 40px rgba(196,127,0,0.15);}
@@ -5179,6 +5198,87 @@ function toggleLang(){
   pmToast(currentLang==='en'?'🌐 Language: English':'🌐 ภาษา: ไทย','#4A8FD9');
 }
 
+
+// ════════════════════════════════════════════════════════════
+// BUDGET OVERRIDE — ตั้งงบประมาณโครงการ + คำนวณ P&L
+// ════════════════════════════════════════════════════════════
+let _acctBudgetOverride = null; // null = ใช้จาก Task, number = override
+
+function acctOnBudgetChange(val) {
+  const v = parseFloat(val);
+  _acctBudgetOverride = (!isNaN(v) && v > 0) ? toBase(v) : null;
+  const lbl = document.getElementById('acct-budget-src-lbl');
+  if(lbl) lbl.textContent = _acctBudgetOverride ? '(กำหนดเอง)' : '(จาก Task budgets)';
+  // re-render ด้วย budget ใหม่
+  if(_acctProjId) {
+    _dbGetAsync().then(db => {
+      const p = db[_acctProjId];
+      let taskBudget = 0;
+      if(p && p.state && p.state.tasks) p.state.tasks.forEach(t => {
+        if(t.subtasks && t.subtasks.length > 0) t.subtasks.forEach(s => { taskBudget += (s.budgetMat||0)+(s.budgetLab||0); });
+        else taskBudget += (t.budgetMat||0)+(t.budgetLab||0);
+      });
+      const budget = _acctBudgetOverride !== null ? _acctBudgetOverride : taskBudget;
+      // save override ลง acct store
+      const db2 = _acctDB();
+      if(!db2[_acctProjId]) db2[_acctProjId] = {txns:[], notes:''};
+      db2[_acctProjId].budgetOverride = _acctBudgetOverride;
+      _acctSave(db2);
+      acctRenderAll(_acctProjId, budget, p);
+    });
+  }
+}
+
+function acctResetBudget() {
+  _acctBudgetOverride = null;
+  const inp = document.getElementById('acct-budget-override');
+  if(inp) inp.value = '';
+  const lbl = document.getElementById('acct-budget-src-lbl');
+  if(lbl) lbl.textContent = '(จาก Task budgets)';
+  const db2 = _acctDB();
+  if(_acctProjId && db2[_acctProjId]) {
+    db2[_acctProjId].budgetOverride = null;
+    _acctSave(db2);
+  }
+  if(_acctProjId) acctLoadProject(_acctProjId);
+}
+
+function acctUpdateBudgetPanel(projBudget, totalExp) {
+  const c = getCurr();
+  const fmt = n => c.sym+' '+toDisplay(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const profitVsBudget = projBudget - totalExp;
+  const pct = projBudget > 0 ? ((projBudget - totalExp) / projBudget * 100) : null;
+
+  // อัปเดต input field
+  const inp = document.getElementById('acct-budget-override');
+  const sym = document.getElementById('acct-budget-currency-sym');
+  if(inp && _acctBudgetOverride === null) {
+    inp.placeholder = projBudget > 0 ? toDisplay(projBudget).toLocaleString('en-US',{minimumFractionDigits:2}) : '0.00';
+  }
+  if(sym) sym.textContent = c.sym;
+
+  // อัปเดต result stats
+  const setEl = (id, text, color) => {
+    const e = document.getElementById(id);
+    if(e){ e.textContent = text; if(color) e.style.color = color; }
+  };
+
+  setEl('acct-bp-exp', totalExp > 0 ? '−'+fmt(totalExp) : '—', 'var(--red)');
+  if(projBudget > 0) {
+    setEl('acct-bp-profit',
+      (profitVsBudget >= 0 ? '+ ' : '− ') + fmt(Math.abs(profitVsBudget)),
+      profitVsBudget >= 0 ? 'var(--green)' : 'var(--red)'
+    );
+    setEl('acct-bp-pct',
+      pct !== null ? pct.toFixed(1) + '%' : '—',
+      pct >= 20 ? 'var(--green)' : pct >= 0 ? 'var(--accent)' : 'var(--red)'
+    );
+  } else {
+    setEl('acct-bp-profit', '—', 'var(--text3)');
+    setEl('acct-bp-pct', '—', 'var(--text3)');
+  }
+}
+
 // Load saved lang on start
 (function(){
   try{
@@ -5237,7 +5337,25 @@ function acctLoadProject(id){
       ts.innerHTML='<option value="">— ทั่วไป —</option>';tf.innerHTML='<option value="all">ทุก Task</option>';
       p.state.tasks.forEach(t=>{const o1=document.createElement('option');o1.value=t.name;o1.textContent=t.name;ts.appendChild(o1);const o2=document.createElement('option');o2.value=t.name;o2.textContent=t.name;tf.appendChild(o2);});
     }
-    let bgt=0;if(p&&p.state&&p.state.tasks)p.state.tasks.forEach(t=>{if(t.subtasks&&t.subtasks.length>0)t.subtasks.forEach(s=>{bgt+=(s.budgetMat||0)+(s.budgetLab||0);});else bgt+=(t.budgetMat||0)+(t.budgetLab||0);});
+    // คำนวณ budget จาก Tasks
+    let taskBgt=0;if(p&&p.state&&p.state.tasks)p.state.tasks.forEach(t=>{if(t.subtasks&&t.subtasks.length>0)t.subtasks.forEach(s=>{taskBgt+=(s.budgetMat||0)+(s.budgetLab||0);});else taskBgt+=(t.budgetMat||0)+(t.budgetLab||0);});
+    // โหลด budget override จาก acct store
+    const acctData = _acctDB();
+    const acctProj = acctData[id] || {};
+    _acctBudgetOverride = acctProj.budgetOverride || null;
+    // อัปเดต input field
+    const inp = document.getElementById('acct-budget-override');
+    const lbl = document.getElementById('acct-budget-src-lbl');
+    if(inp) {
+      if(_acctBudgetOverride !== null) {
+        inp.value = toDisplay(_acctBudgetOverride).toString();
+        if(lbl) lbl.textContent = '(กำหนดเอง)';
+      } else {
+        inp.value = '';
+        if(lbl) lbl.textContent = '(จาก Task budgets)';
+      }
+    }
+    const bgt = _acctBudgetOverride !== null ? _acctBudgetOverride : taskBgt;
     acctRenderAll(id,bgt,p);
   });
 }
@@ -5286,7 +5404,7 @@ function acctRenderAll(projId,projBudget,projData){
   const pc=document.getElementById('acct-s-profit-card');if(pc){pc.classList.remove('pos','neg');pc.classList.add(profit>=0?'pos':'neg');}
   const cats=[...new Set(txns.map(t=>t.cat))];const cf=document.getElementById('acct-filter-cat');
   if(cf){const cv=cf.value;cf.innerHTML='<option value="all">ทุกหมวด</option>';cats.forEach(cat=>{const o=document.createElement('option');o.value=cat;o.textContent=cat;cf.appendChild(o);});if(cv)cf.value=cv;}
-  acctRenderTxns(txns);acctRenderPL(txns,totalInc,totalExp,profit,projBudget,margin);acctRenderMonthlyChart(txns);acctRenderTaskBreakdown(txns,projData);
+  acctRenderTxns(txns);acctRenderPL(txns,totalInc,totalExp,profit,projBudget,margin);acctRenderMonthlyChart(txns);acctRenderTaskBreakdown(txns,projData);acctUpdateBudgetPanel(projBudget,totalExp);
 }
 function acctRenderTxns(rawTxns){
   if(!_acctProjId)return;
@@ -5483,6 +5601,37 @@ async function acctExportPDF(){
         <button class="btn blue" onclick="acctExportPDF()" style="gap:5px">📄 PDF</button>
       </div>
     </div>
+    <!-- ═══ Budget Override Panel ═══ -->
+    <div class="acct-budget-panel" id="acct-budget-panel">
+      <div>
+        <span class="acct-budget-label">🗂️ งบประมาณโครงการ</span>
+        <span class="acct-budget-src" id="acct-budget-src-lbl">(จาก Task budgets)</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span id="acct-budget-currency-sym" style="font-size:13px;font-weight:700;color:var(--accent)">$</span>
+        <input type="number" id="acct-budget-override" class="acct-budget-inp"
+          placeholder="0.00" min="0" step="100"
+          oninput="acctOnBudgetChange(this.value)"
+          title="พิมพ์งบประมาณโครงการ (override ค่าจาก Task)">
+        <button onclick="acctResetBudget()" class="btn" style="font-size:10px;padding:5px 10px;white-space:nowrap" title="ใช้ค่าจาก Task budgets">↩ Reset</button>
+      </div>
+      <div class="acct-budget-result">
+        <div class="acct-budget-stat">
+          <span class="acct-budget-stat-lbl">รายจ่ายจริง</span>
+          <span class="acct-budget-stat-val" id="acct-bp-exp" style="color:var(--red)">—</span>
+        </div>
+        <div style="font-size:18px;color:var(--text3)">→</div>
+        <div class="acct-budget-stat">
+          <span class="acct-budget-stat-lbl">กำไร / ขาดทุน (vs งบ)</span>
+          <span class="acct-budget-stat-val" id="acct-bp-profit">—</span>
+        </div>
+        <div class="acct-budget-stat">
+          <span class="acct-budget-stat-lbl">% คงเหลือ</span>
+          <span class="acct-budget-stat-val" id="acct-bp-pct">—</span>
+        </div>
+      </div>
+    </div>
+
     <!-- Summary Cards -->
     <div class="acct-summary-row">
       <div class="acct-sum-card inc"><div class="acct-sum-lbl">💰 รายรับรวม</div><div class="acct-sum-val" id="acct-s-income">—</div><div class="acct-sum-sub" id="acct-s-income-cnt">0 รายการ</div></div>
