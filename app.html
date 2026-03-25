@@ -598,14 +598,13 @@ body { overflow: hidden; }
   <div class="header-right">
     <span class="badge">🇱🇦 LAO + 🇹🇭 TH</span>
     <span class="badge" style="background:var(--blue-soft);border-color:rgba(46,116,184,0.4);color:var(--blue)" id="app-version-badge">v7</span>
-    <!-- ── Update Button ── -->
     <button id="update-btn" onclick="triggerCheckUpdate()"
-      title="ตรวจสอบอัปเดตจาก GitHub"
+      title="ตรวจสอบและดาวน์โหลดอัปเดตจาก GitHub"
       style="background:var(--bg2);border:1px solid var(--border2);color:var(--text2);
       font-size:11px;font-weight:600;padding:6px 12px;border-radius:6px;cursor:pointer;
       transition:all 0.15s;display:flex;align-items:center;gap:5px;white-space:nowrap;"
-      onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green)'"
-      onmouseout="if(!this.dataset.loading){this.style.borderColor='var(--border2)';this.style.color='var(--text2)'}">
+      onmouseover="if(!this.disabled){this.style.borderColor='var(--green)';this.style.color='var(--green)'}"
+      onmouseout="if(!this.disabled){this.style.borderColor='var(--border2)';this.style.color='var(--text2)'}">
       <span id="update-btn-icon">🔄</span>
       <span id="update-btn-label">อัปเดต</span>
     </button>
@@ -3608,6 +3607,45 @@ async function _migrateToFile(){
 }
 let _curId = null;
 
+// ════════════════════════════════════════════════════════════
+// UPDATE BUTTON — ใช้ window.require ตรงเหมือน _dbGetAsync
+// อยู่ใน script block เดียวกับ _isElectron จึง scope ถูกต้อง
+// ════════════════════════════════════════════════════════════
+async function triggerCheckUpdate() {
+  const btn   = document.getElementById('update-btn');
+  const icon  = document.getElementById('update-btn-icon');
+  const label = document.getElementById('update-btn-label');
+  if (!btn) return;
+
+  // ตรวจสอบ Electron ด้วยวิธีเดียวกับ _dbGetAsync (ไม่ใช้ _isElectron ที่อาจ scope ต่าง)
+  const hasElectron = !!(window && window.require);
+  if (!hasElectron) {
+    pmToast('⚠️ ใช้ได้เฉพาะใน Electron app เท่านั้น', 'var(--red)');
+    return;
+  }
+
+  // Loading state
+  btn.disabled = true;
+  btn.style.borderColor = 'var(--accent)';
+  btn.style.color       = 'var(--accent)';
+  if (icon)  icon.textContent  = '⏳';
+  if (label) label.textContent = 'กำลังตรวจสอบ...';
+
+  try {
+    const ipc = window.require('electron').ipcRenderer;
+    await ipc.invoke('check-update');
+    // main.js จัดการแสดง dialog + download เอง
+  } catch(e) {
+    pmToast('❌ ตรวจสอบไม่ได้: ' + e.message, 'var(--red)');
+  } finally {
+    btn.disabled = false;
+    btn.style.borderColor = 'var(--border2)';
+    btn.style.color       = 'var(--text2)';
+    if (icon)  icon.textContent  = '🔄';
+    if (label) label.textContent = 'อัปเดต';
+  }
+}
+
 function _dbGet(){ try{ return JSON.parse(localStorage.getItem(_PM)||'{}'); }catch(e){ return {}; } }
 function _dbSet(d){ try{ localStorage.setItem(_PM, JSON.stringify(d)); }catch(e){ alert('Storage เต็มครับ'); } }
 
@@ -5065,43 +5103,6 @@ function toggleLang(){
   currentLang = currentLang === 'th' ? 'en' : 'th';
   applyLang();
   pmToast(currentLang==='en'?'🌐 Language: English':'🌐 ภาษา: ไทย','#4A8FD9');
-}
-
-// ════════════════════════════════════════════════════════════
-// UPDATE BUTTON — เรียก IPC check-update จาก header
-// ════════════════════════════════════════════════════════════
-async function triggerCheckUpdate() {
-  const btn   = document.getElementById('update-btn');
-  const icon  = document.getElementById('update-btn-icon');
-  const label = document.getElementById('update-btn-label');
-  if (!btn || !icon || !label) return;
-
-  if (!_isElectron) {
-    pmToast('⚠️ ฟีเจอร์นี้ใช้ได้เฉพาะใน Electron app เท่านั้น', 'var(--red)');
-    return;
-  }
-
-  // Loading state
-  btn.dataset.loading = '1';
-  btn.style.borderColor = 'var(--accent)';
-  btn.style.color       = 'var(--accent)';
-  icon.textContent  = '⏳';
-  label.textContent = 'กำลังตรวจสอบ...';
-  btn.disabled = true;
-
-  try {
-    const ipc = window.require('electron').ipcRenderer;
-    await ipc.invoke('check-update');
-  } catch(e) {
-    pmToast('❌ ตรวจสอบไม่ได้: ' + e.message, 'var(--red)');
-  } finally {
-    delete btn.dataset.loading;
-    btn.disabled = false;
-    btn.style.borderColor = 'var(--border2)';
-    btn.style.color       = 'var(--text2)';
-    icon.textContent  = '🔄';
-    label.textContent = 'อัปเดต';
-  }
 }
 
 // Load saved lang on start
