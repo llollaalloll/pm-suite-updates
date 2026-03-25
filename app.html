@@ -1079,7 +1079,7 @@ body { overflow: hidden; }
           <option value="ชิ้น"><option value="เส้น"><option value="แผ่น"><option value="ตัน">
           <option value="วัน"><option value="คน"><option value="ทีม"><option value="เหมา">
         </datalist>
-        <input class="bm-inp bm-inp-price" id="bm-inp-price" type="number" placeholder="ราคา/หน่วย" min="0" step="1">
+        <input class="bm-inp bm-inp-price" id="bm-inp-price" type="number" placeholder="ราคา/หน่วย" min="0" step="0.01" title="กรอกราคาใน currency ที่เลือก">
         <button class="bm-add-btn" onclick="bmAddItem()" data-i18n="btn_add">+ เพิ่ม</button>
       </div>
       <!-- Items list -->
@@ -1584,9 +1584,9 @@ function updateBudgetCard(){
   const card=document.getElementById('budget-card');
   if(card) card.style.display=total>0?'':'none';
   const el=(id,val)=>{ const e=document.getElementById(id); if(e) e.textContent=val; };
-  el('s-budget-mat', total>0 ? c.sym+' '+totalMat.toLocaleString('en-US') : '—');
-  el('s-budget-lab', total>0 ? c.sym+' '+totalLab.toLocaleString('en-US') : '—');
-  el('s-budget-total', total>0 ? c.sym+' '+total.toLocaleString('en-US') : '—');
+  el('s-budget-mat', total>0 ? fmtMoney(totalMat) : '—');
+  el('s-budget-lab', total>0 ? fmtMoney(totalLab) : '—');
+  el('s-budget-total', total>0 ? fmtMoney(total) : '—');
   el('budget-currency-lbl', 'Total Budget • '+c.flag+' '+c.name);
   el('budget-card-lbl', 'งบประมาณรวม ('+c.code+')');
   renderBudgetPie();
@@ -4544,9 +4544,9 @@ function bmRenderItems(){
     return `<div class="bm-item">
       <div style="flex:1;min-width:0">
         <div class="bm-item-name">${escHtmlBM(item.name)}</div>
-        <div class="bm-item-detail">${item.qty} ${item.unit||''} × ${fmtBht(item.price)}</div>
+        <div class="bm-item-detail">${item.qty} ${item.unit||''} × ${fmtMoney(item.price)}</div>
       </div>
-      <div class="bm-item-total" style="color:${color}">${fmtBht(total)}</div>
+      <div class="bm-item-total" style="color:${color}">${fmtMoney(total)}</div>
       <button class="bm-item-del" onclick="bmDeleteItem(${idx})" title="ลบ">✕</button>
     </div>`;
   }).join('');
@@ -4587,11 +4587,11 @@ function bmDeleteItem(idx){
 function bmUpdateTotals(){
   const matTotal = _bm.matItems.reduce((s,x)=>s+(x.qty||1)*(x.price||0),0);
   const labTotal = _bm.labItems.reduce((s,x)=>s+(x.qty||1)*(x.price||0),0);
-  document.getElementById('bm-mat-total').textContent     = fmtBht(matTotal);
-  document.getElementById('bm-lab-total').textContent     = fmtBht(labTotal);
-  document.getElementById('bm-grand-total').textContent   = fmtBht(matTotal+labTotal);
-  document.getElementById('bm-mat-total-tab').textContent = matTotal>0?fmtBht(matTotal):'';
-  document.getElementById('bm-lab-total-tab').textContent = labTotal>0?fmtBht(labTotal):'';
+  document.getElementById('bm-mat-total').textContent     = fmtMoney(matTotal);
+  document.getElementById('bm-lab-total').textContent     = fmtMoney(labTotal);
+  document.getElementById('bm-grand-total').textContent   = fmtMoney(matTotal+labTotal);
+  document.getElementById('bm-mat-total-tab').textContent = matTotal>0?fmtMoney(matTotal):'';
+  document.getElementById('bm-lab-total-tab').textContent = labTotal>0?fmtMoney(labTotal):'';
 }
 
 // ── Save & apply to task ──
@@ -4933,7 +4933,7 @@ function bvRenderItems(){
         <div style="text-align:center;padding:24px 16px">
           <div style="font-size:11px;color:var(--text3);margin-bottom:12px">ไม่มีรายการย่อย — แสดงยอดรวม</div>
           <div style="font-size:28px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:${color}">
-            ${fmtBht(total)}
+            ${fmtMoney(total)}
           </div>
         </div>`;
     } else {
@@ -4956,7 +4956,7 @@ function bvRenderItems(){
       <td style="padding:8px 10px;font-size:11px;color:var(--text2);text-align:right;
         font-family:'IBM Plex Mono',monospace">${fmtMoney(item.price || 0)}</td>
       <td style="padding:8px 12px;font-size:12px;font-weight:700;color:${color};
-        text-align:right;font-family:'IBM Plex Mono',monospace">${fmtBht(total)}</td>
+        text-align:right;font-family:'IBM Plex Mono',monospace">${fmtMoney(total)}</td>
     </tr>`;
   }).join('');
 
@@ -4985,7 +4985,7 @@ function bvRenderItems(){
           <td colspan="5" style="padding:9px 12px;font-size:11px;font-weight:700;color:var(--text2);text-align:right;
             border-top:1px solid var(--border2)">รวม</td>
           <td style="padding:9px 12px;font-size:13px;font-weight:700;color:${color};text-align:right;
-            border-top:1px solid var(--border2);font-family:'IBM Plex Mono',monospace">${fmtBht(grandTotal)}</td>
+            border-top:1px solid var(--border2);font-family:'IBM Plex Mono',monospace">${fmtMoney(grandTotal)}</td>
         </tr>
       </tfoot>
     </table>`;
@@ -4998,11 +4998,11 @@ function bvUpdateTotals(){
   const labTotal = _bvData.labItems && _bvData.labItems.length > 0
     ? _bvData.labItems.reduce((s,x) => s+(x.qty||1)*(x.price||0), 0)
     : _bvData.budgetLab;
-  document.getElementById('bv-mat-total').textContent   = fmtBht(matTotal);
-  document.getElementById('bv-lab-total').textContent   = fmtBht(labTotal);
-  document.getElementById('bv-grand-total').textContent = fmtBht(matTotal + labTotal);
-  document.getElementById('bv-mat-sum').textContent     = matTotal > 0 ? fmtBht(matTotal) : '';
-  document.getElementById('bv-lab-sum').textContent     = labTotal > 0 ? fmtBht(labTotal) : '';
+  document.getElementById('bv-mat-total').textContent   = fmtMoney(matTotal);
+  document.getElementById('bv-lab-total').textContent   = fmtMoney(labTotal);
+  document.getElementById('bv-grand-total').textContent = fmtMoney(matTotal + labTotal);
+  document.getElementById('bv-mat-sum').textContent     = matTotal > 0 ? fmtMoney(matTotal) : '';
+  document.getElementById('bv-lab-sum').textContent     = labTotal > 0 ? fmtMoney(labTotal) : '';
 }
 
 // Close on overlay click
