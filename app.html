@@ -582,6 +582,29 @@ body { overflow: hidden; }
 #lic-footer a{color:#C47F00;}
 @keyframes lic-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 .lic-shake{animation:lic-shake 0.4s ease;}
+/* ═══ ACCT EDIT MODAL ═══ */
+#acct-edit-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:8000;
+  align-items:center;justify-content:center;
+}
+#acct-edit-overlay.show{display:flex;}
+#acct-edit-modal{
+  background:var(--bg2);border:1px solid var(--border2);border-radius:12px;
+  padding:22px 24px;min-width:380px;max-width:480px;width:90%;
+  box-shadow:0 12px 40px rgba(0,0,0,.4);
+}
+.acct-edit-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:16px;}
+.acct-edit-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+.acct-edit-row{display:flex;flex-direction:column;gap:4px;}
+.acct-edit-lbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;}
+.acct-edit-inp{
+  background:var(--bg3);border:1.5px solid var(--border2);color:var(--text);
+  font-family:inherit;font-size:13px;padding:8px 11px;border-radius:6px;
+  outline:none;width:100%;transition:border-color .2s;
+}
+.acct-edit-inp:focus{border-color:var(--accent);}
+.acct-edit-actions{display:flex;gap:8px;justify-content:flex-end;}
+
 /* ═══ CUSTOM DATE PICKER ═══ */
 .dp-wrap{position:relative;display:inline-block;width:100%;}
 .dp-input{
@@ -5673,31 +5696,98 @@ function acctEditTxn(txnId) {
   if(!txn) return;
   _acctEditId = txnId;
 
-  // สร้าง modal แบบ simple prompt
+  // แสดง inline modal
   const c = getCurr();
-  const currentAmt = toDisplay(txn.amount).toFixed(2);
-  const newDesc = prompt('คำอธิบาย:', txn.desc || '');
-  if(newDesc === null) return; // cancelled
-  const newAmtStr = prompt('จำนวนเงิน ('+c.code+'):', currentAmt);
-  if(newAmtStr === null) return;
+  const el = id => document.getElementById(id);
+  if(el('acct-edit-date'))   el('acct-edit-date').value   = txn.date || '';
+  if(el('acct-edit-cat'))    el('acct-edit-cat').value    = txn.cat  || '';
+  if(el('acct-edit-desc'))   el('acct-edit-desc').value   = txn.desc || '';
+  if(el('acct-edit-amount')) el('acct-edit-amount').value = toDisplay(txn.amount).toFixed(2);
+  if(el('acct-edit-docno'))  el('acct-edit-docno').value  = txn.docno || '';
+  if(el('acct-edit-currency')) el('acct-edit-currency').textContent = c.code;
+
+  const overlay = el('acct-edit-overlay');
+  if(overlay) overlay.classList.add('show');
+  setTimeout(() => { if(el('acct-edit-desc')) el('acct-edit-desc').focus(); }, 100);
+}
+
+function acctEditClose() {
+  const overlay = document.getElementById('acct-edit-overlay');
+  if(overlay) overlay.classList.remove('show');
+  _acctEditId = null;
+}
+
+function acctEditSave() {
+  if(!_acctEditId || !_acctProjId) return;
+  const el = id => document.getElementById(id);
+  const newDate   = (el('acct-edit-date')?.value   || '').trim();
+  const newCat    = (el('acct-edit-cat')?.value    || '').trim();
+  const newDesc   = (el('acct-edit-desc')?.value   || '').trim();
+  const newAmtStr = el('acct-edit-amount')?.value  || '';
+  const newDocno  = (el('acct-edit-docno')?.value  || '').trim();
+
+  if(!newDesc) { pmToast('กรุณากรอกคำอธิบาย','var(--red)'); return; }
   const newAmt = parseFloat(newAmtStr);
   if(isNaN(newAmt) || newAmt <= 0) { pmToast('จำนวนเงินไม่ถูกต้อง','var(--red)'); return; }
-  const newDate = prompt('วันที่ (YYYY-MM-DD):', txn.date || '');
-  if(newDate === null) return;
+  const newAmtBase = toBase(newAmt);
 
-  // Update
+  // 1. อัปเดต Accounting เสมอ
   const dbU = _acctDB();
   const txns = dbU[_acctProjId]?.txns || [];
-  const idx = txns.findIndex(t => t.id === txnId);
-  if(idx >= 0) {
-    txns[idx].desc = newDesc.trim();
-    txns[idx].amount = toBase(newAmt);
-    txns[idx].date = newDate.trim();
-    dbU[_acctProjId].txns = txns;
-    _acctSave(dbU);
-    acctLoadProject(_acctProjId);
-    pmToast('✅ แก้ไขรายการแล้ว', 'var(--green)');
+  const idx = txns.findIndex(t => t.id === _acctEditId);
+  if(idx < 0) { pmToast('ไม่พบรายการ','var(--red)'); return; }
+
+  const txn = txns[idx];
+  if(newDate) txns[idx].date  = newDate;
+  if(newCat)  txns[idx].cat   = newCat;
+  txns[idx].desc   = newDesc;
+  txns[idx].amount = newAmtBase;
+  txns[idx].docno  = newDocno;
+  dbU[_acctProjId].txns = txns;
+  _acctSave(dbU);
+
+  // 2. Sync กลับ Task Schedule ถ้าหา task name ตรงกันได้
+  let synced = false;
+  const taskName = txn.task || '';
+  const isMat = txn.cat === 'ค่าวัสดุ';
+  const isLab = txn.cat === 'ค่าแรงงาน';
+
+  if(taskName && (isMat || isLab) && ST.tasks) {
+    ST.tasks.forEach((t, ti) => {
+      if(t.name === taskName) {
+        if(isMat) t.budgetMat = newAmtBase;
+        if(isLab) t.budgetLab = newAmtBase;
+        synced = true;
+      }
+      (t.subtasks||[]).forEach((s, si) => {
+        if(s.name === taskName) {
+          if(isMat) s.budgetMat = newAmtBase;
+          if(isLab) s.budgetLab = newAmtBase;
+          recalcBudgetFromSubs(ti);
+          synced = true;
+        }
+        (s.subtasks||[]).forEach(ss => {
+          if(ss.name === taskName) {
+            if(isMat) ss.budgetMat = newAmtBase;
+            if(isLab) ss.budgetLab = newAmtBase;
+            recalcSub2FromSubs3(ti, si);
+            recalcBudgetFromSubs(ti);
+            synced = true;
+          }
+        });
+      });
+    });
   }
+
+  if(synced) {
+    updateBudgetCard();
+    renderTasks();
+    pmSaveCurrent();
+  }
+
+  acctEditClose();
+  acctLoadProject(_acctProjId);
+  pmToast(synced ? '✅ อัปเดตบัญชี + Task Schedule แล้ว' : '✅ แก้ไขรายการบัญชีแล้ว', 'var(--green)');
 }
 function acctDelTxn(txnId){if(!_acctProjId||!confirm('ลบรายการนี้?'))return;const db=_acctDB();if(db[_acctProjId])db[_acctProjId].txns=(db[_acctProjId].txns||[]).filter(t=>t.id!==txnId);_acctSave(db);acctLoadProject(_acctProjId);pmToast('ลบรายการแล้ว','var(--red)');}
 function acctClearFilters(){['acct-filter-type','acct-filter-cat','acct-filter-task'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=id==='acct-filter-type'?'all':id==='acct-filter-cat'?'all':'all';});const m=document.getElementById('acct-filter-month');if(m)m.value='';acctRenderTxns();}
@@ -6133,6 +6223,39 @@ async function acctExportPDF(){
 </div><!-- /sb-row -->
 </div><!-- /sb-overlay -->
 <div id="pm-toast"></div>
+<!-- ACCT EDIT MODAL -->
+<div id="acct-edit-overlay">
+  <div id="acct-edit-modal">
+    <div class="acct-edit-title">✏️ แก้ไขรายการ</div>
+    <div class="acct-edit-grid">
+      <div class="acct-edit-row">
+        <label class="acct-edit-lbl">วันที่</label>
+        <input type="date" id="acct-edit-date" class="acct-edit-inp">
+      </div>
+      <div class="acct-edit-row">
+        <label class="acct-edit-lbl">หมวดหมู่</label>
+        <input type="text" id="acct-edit-cat" class="acct-edit-inp">
+      </div>
+      <div class="acct-edit-row">
+        <label class="acct-edit-lbl">คำอธิบาย</label>
+        <input type="text" id="acct-edit-desc" class="acct-edit-inp">
+      </div>
+      <div class="acct-edit-row">
+        <label class="acct-edit-lbl">จำนวนเงิน (<span id="acct-edit-currency">USD</span>)</label>
+        <input type="number" id="acct-edit-amount" class="acct-edit-inp" min="0" step="0.01">
+      </div>
+      <div class="acct-edit-row">
+        <label class="acct-edit-lbl">เลขที่เอกสาร</label>
+        <input type="text" id="acct-edit-docno" class="acct-edit-inp" placeholder="INV-001">
+      </div>
+    </div>
+    <div class="acct-edit-actions">
+      <button class="btn" onclick="acctEditClose()">ยกเลิก</button>
+      <button class="btn accent" onclick="acctEditSave()">✅ บันทึก</button>
+    </div>
+  </div>
+</div>
+
 <div id="dp-global-calendar" class="dp-calendar"></div>
 
 
