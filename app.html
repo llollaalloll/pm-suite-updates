@@ -3703,6 +3703,9 @@ function _pack(){
     vm: ST.vm, vy: ST.vy,
     notes: ST.notes||{},
     appointments: ST.appointments||{},
+    currency: currentCurrency,
+    fxLAK: FX.LAK,
+    fxTHB: FX.THB,
     tasks: (ST.tasks||[]).map(t => ({
       ...t,
       startDate: dts(t.startDate), endDate: dts(t.endDate),
@@ -3722,6 +3725,16 @@ function _unpack(d){
     ...t, startDate: dt(t.startDate), endDate: dt(t.endDate),
     subtasks: (t.subtasks||[]).map(s => ({...s, startDate: dt(s.startDate), endDate: dt(s.endDate)}))
   }));
+  // Restore currency settings
+  if(d.currency && ['USD','LAK','THB'].includes(d.currency)){
+    currentCurrency = d.currency;
+    if(d.fxLAK) FX.LAK = d.fxLAK;
+    if(d.fxTHB) FX.THB = d.fxTHB;
+    // อัปเดต UI
+    const sel = document.getElementById('currency-sel');
+    if(sel) sel.value = currentCurrency;
+    onCurrencyChange(currentCurrency);
+  }
 }
 
 function pmSaveCurrent(){
@@ -4547,7 +4560,8 @@ function bmAddItem(){
   if(!name){ document.getElementById('bm-inp-name').focus(); return; }
   const qty   = parseFloat(document.getElementById('bm-inp-qty').value)||1;
   const unit  = document.getElementById('bm-inp-unit').value.trim();
-  const price = parseFloat(document.getElementById('bm-inp-price').value)||0;
+  const priceDisplay = parseFloat(document.getElementById('bm-inp-price').value)||0;
+  const price = toBase(priceDisplay); // เก็บ USD เสมอ
   const item  = { id:Date.now(), name, qty, unit, price };
   if(_bm.tab==='mat') _bm.matItems.push(item);
   else                _bm.labItems.push(item);
@@ -4591,9 +4605,9 @@ function bmSave(){
   // Save items + totals
   target.matItems  = _bm.matItems;
   target.labItems  = _bm.labItems;
-  // price ใน matItems/labItems เป็น display currency → toBase ก่อนเก็บ
-  target.budgetMat = Math.round(toBase(_bm.matItems.reduce((s,x)=>s+(x.qty||1)*(x.price||0),0)));
-  target.budgetLab = Math.round(toBase(_bm.labItems.reduce((s,x)=>s+(x.qty||1)*(x.price||0),0)));
+  // price ใน matItems เป็น USD base แล้ว (toBase ตอน bmAddItem)
+  target.budgetMat = Math.round(_bm.matItems.reduce((s,x)=>s+(x.qty||1)*(x.price||0),0));
+  target.budgetLab = Math.round(_bm.labItems.reduce((s,x)=>s+(x.qty||1)*(x.price||0),0));
   // Bubble up
   if(level==='sub2'){
     recalcSub2FromSubs3(ti,si);
@@ -4617,13 +4631,12 @@ function bmSave(){
 
     // matItems/labItems price เก็บใน display currency → ต้อง toBase ก่อนบันทึก
     // budgetMat/budgetLab เก็บเป็น USD อยู่แล้ว → ไม่ต้อง convert
-    // หลัง bmSave fix: target.budgetMat เป็น USD base แล้ว
-    // matItems.price ยังเป็น display currency อยู่ → toBase ก่อนบันทึก
+    // matItems.price เป็น USD base (toBase ตอน bmAddItem แล้ว)
     const matTotalUSD = target.matItems && target.matItems.length > 0
-      ? Math.round(toBase(target.matItems.reduce((s,x) => s+(x.qty||1)*(x.price||0), 0)))
+      ? Math.round(target.matItems.reduce((s,x) => s+(x.qty||1)*(x.price||0), 0))
       : (target.budgetMat||0);
     const labTotalUSD = target.labItems && target.labItems.length > 0
-      ? Math.round(toBase(target.labItems.reduce((s,x) => s+(x.qty||1)*(x.price||0), 0)))
+      ? Math.round(target.labItems.reduce((s,x) => s+(x.qty||1)*(x.price||0), 0))
       : (target.budgetLab||0);
     const matTotalDisplay = toDisplay(matTotalUSD);
     const labTotalDisplay = toDisplay(labTotalUSD);
@@ -4941,7 +4954,7 @@ function bvRenderItems(){
         font-family:'IBM Plex Mono',monospace">${item.qty || 1}</td>
       <td style="padding:8px 8px;font-size:11px;color:var(--text3)">${item.unit || '—'}</td>
       <td style="padding:8px 10px;font-size:11px;color:var(--text2);text-align:right;
-        font-family:'IBM Plex Mono',monospace">${fmtBht(item.price || 0)}</td>
+        font-family:'IBM Plex Mono',monospace">${fmtMoney(item.price || 0)}</td>
       <td style="padding:8px 12px;font-size:12px;font-weight:700;color:${color};
         text-align:right;font-family:'IBM Plex Mono',monospace">${fmtBht(total)}</td>
     </tr>`;
