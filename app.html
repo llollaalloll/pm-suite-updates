@@ -6003,25 +6003,111 @@ async function acctExportExcel(){
 }
 async function acctExportPDF(){
   if(!_acctProjId){pmToast('กรุณาเลือกโปรเจกต์','var(--red)');return;}
-  if(typeof window.jspdf==='undefined'){pmToast('jsPDF ไม่พร้อม','var(--red)');return;}
+  pmToast('📄 กำลังสร้าง PDF...','var(--accent)');
   _dbGetAsync().then(db=>{
-    const p=db[_acctProjId];const pN=p?p.name:'Project';const data=_acctGetProj(_acctProjId);const txns=(data.txns||[]).sort((a,b)=>a.date.localeCompare(b.date));const c=getCurr();
-    const tI=txns.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);const tE=txns.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);const profit=tI-tE;const margin=tI>0?(profit/tI*100):0;
+    const p=db[_acctProjId];
+    const pN=p?p.name:'Project';
+    const data=_acctGetProj(_acctProjId);
+    const txns=(data.txns||[]).sort((a,b)=>a.date.localeCompare(b.date));
+    const c=getCurr();
     const fmt=n=>c.sym+' '+toDisplay(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-    const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-    const W=210,ml=14,mr=14,tw=W-ml-mr;let y=16;
-    doc.setFillColor(196,127,0);doc.rect(0,0,W,18,'F');doc.setTextColor(26,18,8);doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text('PROJECT ACCOUNTING REPORT',ml,12);doc.setFontSize(9);doc.text('SSV3D — AI Construction PM Suite',W-mr,12,{align:'right'});y=26;
-    doc.setTextColor(44,42,37);doc.setFont('helvetica','bold');doc.setFontSize(12);doc.text(pN,ml,y);y+=6;doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(107,103,96);doc.text('Export: '+new Date().toLocaleDateString('th-TH')+' | '+c.flag+' '+c.code,ml,y);y+=10;
-    const bW=(tw-6)/3;[{l:'รายรับรวม',v:fmt(tI),c:[39,134,90]},{l:'รายจ่ายรวม',v:fmt(tE),c:[192,57,43]},{l:'กำไร/ขาดทุน',v:(profit>=0?'+':'')+fmt(profit),c:profit>=0?[39,134,90]:[192,57,43]}].forEach((b,i)=>{const bx=ml+i*(bW+3);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(107,103,96);doc.text(b.l,bx+3,y+5);doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(...b.c);doc.text(b.v.substring(0,20),bx+3,y+12);});y+=22;
-    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(44,42,37);doc.text('รายการทั้งหมด ('+txns.length+')',ml,y);y+=5;
-    doc.setFillColor(240,237,230);doc.rect(ml,y,tw,7,'F');doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(107,103,96);let cx=ml+1;['#','วันที่','ประเภท','หมวดหมู่','คำอธิบาย','จำนวนเงิน','Task'].forEach((h,i)=>{doc.text(h,cx,y+5);cx+=[5,22,16,28,60,26,25][i];});y+=8;
-    txns.forEach((t,i)=>{if(y>260){doc.addPage();y=16;}const isInc=t.type==='income';if(i%2===0){doc.setFillColor(250,249,246);doc.rect(ml,y-3,tw,7,'F');}doc.setFont('helvetica','normal');doc.setFontSize(7);cx=ml+1;[String(i+1),t.date||'—',isInc?'รายรับ':'รายจ่าย',t.cat||'',t.desc||'',(isInc?'+':'-')+fmt(t.amount),t.task||''].forEach((v,ci)=>{if(ci===5)doc.setTextColor(isInc?39:192,isInc?134:57,isInc?90:43);else doc.setTextColor(44,42,37);doc.text(v.substring(0,ci===4?38:18),cx,y+3);cx+=[5,22,16,28,60,26,25][ci];});doc.setDrawColor(220,217,208);doc.line(ml,y+4,ml+tw,y+4);y+=7;});
-    y+=8;if(y>230){doc.addPage();y=16;}doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(44,42,37);doc.text('P&L Summary',ml,y);y+=6;
-    [{l:'รวมรายรับ',v:fmt(tI),c:[39,134,90]},{l:'รวมรายจ่าย',v:'-'+fmt(tE),c:[192,57,43]},{l:'กำไรสุทธิ',v:(profit>=0?'+':'-')+fmt(Math.abs(profit)),c:profit>=0?[39,134,90]:[192,57,43]},{l:'Gross Margin',v:margin.toFixed(1)+'%',c:profit>=0?[39,134,90]:[192,57,43]}].forEach(r=>{doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(107,103,96);doc.text(r.l,ml,y);doc.setFont('helvetica','bold');doc.setTextColor(...r.c);doc.text(r.v,W-mr,y,{align:'right'});y+=6;});
-    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(158,154,146);doc.text('SSV3D © 2026 | AI Construction PM Suite',W/2,292,{align:'center'});
-    const d=new Date();const ds=d.getDate()+'-'+(d.getMonth()+1)+'-'+(d.getFullYear()+543);
-    doc.save('Accounting_'+pN.replace(/\s+/g,'_')+'_'+ds+'.pdf');
-    pmToast('Export PDF สำเร็จ','var(--blue)');
+    const tI=txns.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+    const tE=txns.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+    const profit=tI-tE;
+    const margin=tI>0?(profit/tI*100):0;
+    const today=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+
+    // สร้าง rows
+    const rowsHtml=txns.map((t,i)=>{
+      const isInc=t.type==='income';
+      const dt=t.date?(()=>{const d=new Date(t.date);return d.getDate()+'/'+(d.getMonth()+1)+'/'+(d.getFullYear()+543);})():'—';
+      const amtColor=isInc?'#27865A':'#C0392B';
+      const amtSign=isInc?'+':'−';
+      const bg=i%2===0?'#FAF9F6':'#FFFFFF';
+      return `<tr style="background:${bg}">
+        <td style="text-align:center">${i+1}</td>
+        <td>${dt}</td>
+        <td><span style="background:${isInc?'#E8F5E9':'#FFEBEE'};color:${amtColor};padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600">${isInc?'รายรับ':'รายจ่าย'}</span></td>
+        <td>${escHtml(t.cat||'')}</td>
+        <td>${escHtml(t.desc||'')}</td>
+        <td style="text-align:right;color:${amtColor};font-weight:600">${amtSign}${fmt(t.amount)}</td>
+        <td style="color:#6B6760">${escHtml(t.docno||'—')}</td>
+        <td style="color:#6B6760">${escHtml(t.task||'—')}</td>
+      </tr>`;
+    }).join('');
+
+    // P&L rows
+    const incByCat={},expByCat={};
+    txns.filter(t=>t.type==='income').forEach(t=>{incByCat[t.cat]=(incByCat[t.cat]||0)+t.amount;});
+    txns.filter(t=>t.type==='expense').forEach(t=>{expByCat[t.cat]=(expByCat[t.cat]||0)+t.amount;});
+    let plRows='';
+    plRows+='<tr style="background:#F5F3EE"><td colspan="2" style="font-weight:700;padding:8px 12px;font-size:11px">💰 รายรับ (Revenue)</td></tr>';
+    Object.entries(incByCat).forEach(([cat,amt])=>{plRows+=`<tr><td style="padding-left:24px;color:#555">${escHtml(cat)}</td><td style="text-align:right;color:#27865A">${fmt(amt)}</td></tr>`;});
+    plRows+=`<tr style="border-top:1px solid #ddd;font-weight:600"><td style="padding-left:12px">รวมรายรับ</td><td style="text-align:right;color:#27865A">${fmt(tI)}</td></tr>`;
+    plRows+='<tr style="background:#F5F3EE"><td colspan="2" style="font-weight:700;padding:8px 12px;font-size:11px">💸 รายจ่าย (Expenses)</td></tr>';
+    Object.entries(expByCat).forEach(([cat,amt])=>{plRows+=`<tr><td style="padding-left:24px;color:#555">${escHtml(cat)}</td><td style="text-align:right;color:#C0392B">−${fmt(amt)}</td></tr>`;});
+    plRows+=`<tr style="border-top:1px solid #ddd;font-weight:600"><td style="padding-left:12px">รวมรายจ่าย</td><td style="text-align:right;color:#C0392B">−${fmt(tE)}</td></tr>`;
+    plRows+=`<tr style="background:#FFF8EC;border-top:2px solid #C47F00"><td style="font-weight:700;font-size:13px;padding:10px 12px">📊 กำไรสุทธิ</td><td style="text-align:right;font-weight:700;font-size:14px;color:${profit>=0?'#27865A':'#C0392B'}">${profit>=0?'+':'−'}${fmt(Math.abs(profit))}</td></tr>`;
+    plRows+=`<tr><td style="padding-left:12px;color:#888;font-size:11px">Gross Margin</td><td style="text-align:right;font-size:11px;color:${profit>=0?'#27865A':'#C0392B'}">${margin.toFixed(1)}%</td></tr>`;
+
+    const printHtml=`<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<title>Accounting — ${escHtml(pN)}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'IBM Plex Sans Thai',sans-serif;font-size:11px;color:#2C2A25;background:#fff;padding:20px;}
+  .header{background:#C47F00;color:#1A1208;padding:14px 20px;border-radius:8px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;}
+  .header h1{font-size:16px;font-weight:700;}
+  .header .sub{font-size:10px;opacity:.8;}
+  .proj-title{font-size:15px;font-weight:700;margin-bottom:4px;}
+  .export-info{font-size:10px;color:#888;margin-bottom:16px;}
+  .summary-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+  .card{border:1px solid #E0DDD6;border-radius:8px;padding:12px 14px;}
+  .card .lbl{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
+  .card .val{font-size:16px;font-weight:700;font-family:'IBM Plex Mono',monospace;}
+  .section-title{font-size:12px;font-weight:700;margin:16px 0 8px;color:#2C2A25;}
+  table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:10px;}
+  th{background:#F0EDE6;font-size:9px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;padding:7px 10px;text-align:left;border-bottom:1px solid #E0DDD6;}
+  td{padding:7px 10px;border-bottom:1px solid #EEECE7;}
+  .pl-table{width:100%;}
+  .footer{text-align:center;font-size:9px;color:#AAA;margin-top:20px;padding-top:10px;border-top:1px solid #EEE;}
+  @media print{body{padding:10px;}@page{margin:10mm;size:A4;}}
+</style></head><body>
+<div class="header">
+  <div><h1>PROJECT ACCOUNTING REPORT</h1><div class="sub">SSV3D — AI Construction PM Suite</div></div>
+  <div style="text-align:right"><div style="font-size:12px;font-weight:700">${escHtml(pN)}</div><div class="sub">${c.flag} ${c.code} · Export: ${today}</div></div>
+</div>
+<div class="summary-cards">
+  <div class="card"><div class="lbl">💰 รายรับรวม</div><div class="val" style="color:#27865A">${fmt(tI)}</div><div style="font-size:9px;color:#888;margin-top:2px">${txns.filter(t=>t.type==='income').length} รายการ</div></div>
+  <div class="card"><div class="lbl">💸 รายจ่ายรวม</div><div class="val" style="color:#C0392B">${fmt(tE)}</div><div style="font-size:9px;color:#888;margin-top:2px">${txns.filter(t=>t.type==='expense').length} รายการ</div></div>
+  <div class="card" style="border-color:${profit>=0?'#27865A':'#C0392B'}"><div class="lbl">📊 กำไร / ขาดทุน</div><div class="val" style="color:${profit>=0?'#27865A':'#C0392B'}">${profit>=0?'+':'−'}${fmt(Math.abs(profit))}</div><div style="font-size:9px;color:#888;margin-top:2px">Gross Margin: ${margin.toFixed(1)}%</div></div>
+</div>
+<div class="section-title">📋 รายการทั้งหมด (${txns.length} รายการ)</div>
+<table>
+  <thead><tr><th style="width:28px">#</th><th style="width:80px">วันที่</th><th style="width:70px">ประเภท</th><th style="width:100px">หมวดหมู่</th><th>คำอธิบาย</th><th style="width:110px;text-align:right">จำนวนเงิน</th><th style="width:80px">เอกสาร</th><th style="width:100px">Task</th></tr></thead>
+  <tbody>${rowsHtml}</tbody>
+</table>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+  <div>
+    <div class="section-title">📑 P&L Summary</div>
+    <table class="pl-table"><tbody>${plRows}</tbody></table>
+  </div>
+</div>
+<div class="footer">SSV3D © 2026 | AI Construction PM Suite — Accounting Report</div>
+</body></html>`;
+
+    // เปิด print dialog
+    const win=window.open('','_blank','width=900,height=700');
+    if(!win){pmToast('⚠️ กรุณาอนุญาต popup window','var(--red)');return;}
+    win.document.write(printHtml);
+    win.document.close();
+    win.onload=()=>{
+      setTimeout(()=>{
+        win.print();
+        pmToast('📄 เปิดหน้าต่าง Print แล้ว — เลือก "Save as PDF"','var(--blue)');
+      },500);
+    };
   });
 }
 
