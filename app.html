@@ -2065,11 +2065,9 @@ function renderTasks(){
         </td>
         <td style="border-bottom:1px solid var(--border);min-width:105px">
           <button type="button" class="dp-input" style="font-size:10px;padding:2px 5px;border-radius:3px;width:100%;min-height:24px" onclick="dpOpen(this,'${sStartVal}',(v)=>{onSubStartChange(${i},${j},v);dpUpdateBtn(this,v)})"><span class="dp-input-text">${sStartVal?dpFmtDisplay(sStartVal):'วันเริ่ม'}</span><span style="margin-left:auto;font-size:9px;opacity:.4">▼</span></button>
-            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
         </td>
         <td style="border-bottom:1px solid var(--border);min-width:105px">
           <button type="button" class="dp-input" style="font-size:10px;padding:2px 5px;border-radius:3px;width:100%;min-height:24px" onclick="dpOpen(this,'${sEndVal}',(v)=>{onSubEndChange(${i},${j},v);dpUpdateBtn(this,v)})"><span class="dp-input-text">${sEndVal?dpFmtDisplay(sEndVal):'วันสิ้นสุด'}</span><span style="margin-left:auto;font-size:9px;opacity:.4">▼</span></button>
-            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
         </td>
         <td style="border-bottom:1px solid var(--border);min-width:60px;text-align:center">
           <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text3)">${s.wd} วัน</span>
@@ -2158,11 +2156,9 @@ function renderTasks(){
             </td>
             <td style="border-bottom:1px solid var(--border);min-width:105px">
               <button type="button" class="dp-input" style="font-size:10px;padding:2px 5px;border-radius:3px;width:100%;min-height:24px" onclick="dpOpen(this,'${ssStart}',(v)=>{ST.tasks[${i}].subtasks[${j}].subtasks[${k}].startDate=v?new Date(v):null;recalcSub2FromSubs3(${i},${j});renderTasks();dpUpdateBtn(this,v)})"><span class="dp-input-text">${ssStart?dpFmtDisplay(ssStart):'วันเริ่ม'}</span><span style="margin-left:auto;font-size:9px;opacity:.4">▼</span></button>
-                onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
             </td>
             <td style="border-bottom:1px solid var(--border);min-width:105px">
               <button type="button" class="dp-input" style="font-size:10px;padding:2px 5px;border-radius:3px;width:100%;min-height:24px" onclick="dpOpen(this,'${ssEnd}',(v)=>{if(v){const s3=ST.tasks[${i}].subtasks[${j}].subtasks[${k}];s3.endDate=new Date(v);s3.wd=countWD(new Date(s3.startDate),new Date(v),ST.calType);recalcSub2FromSubs3(${i},${j});renderTasks();}dpUpdateBtn(this,v)})"><span class="dp-input-text">${ssEnd?dpFmtDisplay(ssEnd):'วันสิ้นสุด'}</span><span style="margin-left:auto;font-size:9px;opacity:.4">▼</span></button>
-                onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'">
             </td>
             <td style="border-bottom:1px solid var(--border);min-width:60px;text-align:center">
               <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text3)">${ss.wd||1} วัน</span>
