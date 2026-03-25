@@ -1314,7 +1314,7 @@ let currentCurrency='USD';
 function getCurr(){ return CURRENCIES[currentCurrency]; }
 
 // Convert amount: stored in USD → display currency
-function toDisplay(n){ return Math.round((n||0) * FX[currentCurrency]); }
+function toDisplay(n){ return parseFloat(((n||0) * FX[currentCurrency]).toFixed(2)); }
 // Convert amount: display currency → USD (for storage)
 function toBase(n){ return (n||0) / (FX[currentCurrency]||1); }
 
@@ -4606,8 +4606,8 @@ function bmSave(){
   target.matItems  = _bm.matItems;
   target.labItems  = _bm.labItems;
   // price ใน matItems เป็น USD base แล้ว (toBase ตอน bmAddItem)
-  target.budgetMat = Math.round(_bm.matItems.reduce((s,x)=>s+(x.qty||1)*(x.price||0),0));
-  target.budgetLab = Math.round(_bm.labItems.reduce((s,x)=>s+(x.qty||1)*(x.price||0),0));
+  target.budgetMat = _bm.matItems.reduce((s,x)=>s+(x.qty||1)*(x.price||0), 0);
+  target.budgetLab = _bm.labItems.reduce((s,x)=>s+(x.qty||1)*(x.price||0), 0);
   // Bubble up
   if(level==='sub2'){
     recalcSub2FromSubs3(ti,si);
@@ -4633,10 +4633,10 @@ function bmSave(){
     // budgetMat/budgetLab เก็บเป็น USD อยู่แล้ว → ไม่ต้อง convert
     // matItems.price เป็น USD base (toBase ตอน bmAddItem แล้ว)
     const matTotalUSD = target.matItems && target.matItems.length > 0
-      ? Math.round(target.matItems.reduce((s,x) => s+(x.qty||1)*(x.price||0), 0))
+      ? target.matItems.reduce((s,x) => s+(x.qty||1)*(x.price||0), 0)
       : (target.budgetMat||0);
     const labTotalUSD = target.labItems && target.labItems.length > 0
-      ? Math.round(target.labItems.reduce((s,x) => s+(x.qty||1)*(x.price||0), 0))
+      ? target.labItems.reduce((s,x) => s+(x.qty||1)*(x.price||0), 0)
       : (target.budgetLab||0);
     const matTotalDisplay = toDisplay(matTotalUSD);
     const labTotalDisplay = toDisplay(labTotalUSD);
