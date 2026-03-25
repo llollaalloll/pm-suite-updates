@@ -46,6 +46,7 @@ header{
 .tab-nav{
   background:var(--bg2);border-bottom:1px solid var(--border);
   display:flex;padding:0 28px;gap:0;
+  position:sticky;top:56px;z-index:150;
 }
 .tab-btn{
   padding:14px 20px;font-size:12px;font-weight:600;color:var(--text3);
@@ -4344,7 +4345,16 @@ function licCheckOnLoad(){
   // License managed by Electron Hardware-ID lock — auto-grant LT
   const autoKey = licGenKey('SSV3D','LT');
   const res = licValidateKey(autoKey);
-  if(res) licGrant(res, true);
+  if(res){
+    // บันทึก LIC_STORE ให้ถูกต้องก่อน licGrant
+    try{
+      localStorage.setItem(_LIC_STORE, JSON.stringify({
+        key: autoKey, name: 'SSV3D', type: 'LT',
+        issued: null, ts: Date.now()
+      }));
+    }catch(e){}
+    licGrant(res, false); // false = ไม่ save ซ้ำใน licGrant
+  }
 }
 
 // ── Grant access ──
@@ -4581,8 +4591,9 @@ function bmSave(){
   // Save items + totals
   target.matItems  = _bm.matItems;
   target.labItems  = _bm.labItems;
-  target.budgetMat = Math.round(_bm.matItems.reduce((s,x)=>s+(x.qty||1)*(x.price||0),0));
-  target.budgetLab = Math.round(_bm.labItems.reduce((s,x)=>s+(x.qty||1)*(x.price||0),0));
+  // price ใน matItems/labItems เป็น display currency → toBase ก่อนเก็บ
+  target.budgetMat = Math.round(toBase(_bm.matItems.reduce((s,x)=>s+(x.qty||1)*(x.price||0),0)));
+  target.budgetLab = Math.round(toBase(_bm.labItems.reduce((s,x)=>s+(x.qty||1)*(x.price||0),0)));
   // Bubble up
   if(level==='sub2'){
     recalcSub2FromSubs3(ti,si);
@@ -4604,12 +4615,20 @@ function bmSave(){
     const db = _acctDB();
     if(!db[_curId]) db[_curId] = {txns:[], notes:''};
 
-    const matTotal = Math.round(target.matItems && target.matItems.length > 0
-      ? target.matItems.reduce((s,x) => s+(x.qty||1)*(x.price||0), 0)
-      : (target.budgetMat||0));
-    const labTotal = Math.round(target.labItems && target.labItems.length > 0
-      ? target.labItems.reduce((s,x) => s+(x.qty||1)*(x.price||0), 0)
-      : (target.budgetLab||0));
+    // matItems/labItems price เก็บใน display currency → ต้อง toBase ก่อนบันทึก
+    // budgetMat/budgetLab เก็บเป็น USD อยู่แล้ว → ไม่ต้อง convert
+    // หลัง bmSave fix: target.budgetMat เป็น USD base แล้ว
+    // matItems.price ยังเป็น display currency อยู่ → toBase ก่อนบันทึก
+    const matTotalUSD = target.matItems && target.matItems.length > 0
+      ? Math.round(toBase(target.matItems.reduce((s,x) => s+(x.qty||1)*(x.price||0), 0)))
+      : (target.budgetMat||0);
+    const labTotalUSD = target.labItems && target.labItems.length > 0
+      ? Math.round(toBase(target.labItems.reduce((s,x) => s+(x.qty||1)*(x.price||0), 0)))
+      : (target.budgetLab||0);
+    const matTotalDisplay = toDisplay(matTotalUSD);
+    const labTotalDisplay = toDisplay(labTotalUSD);
+    const matTotal = matTotalDisplay;
+    const labTotal = labTotalDisplay;
 
     // ลบ transaction เก่าของ task นี้ออกก่อน (ถ้ามี) แล้วสร้างใหม่
     db[_curId].txns = (db[_curId].txns||[]).filter(t =>
@@ -4620,7 +4639,7 @@ function bmSave(){
       db[_curId].txns.push({
         id: _acctTxnId(), date: txnDate, type: 'expense',
         cat: 'ค่าวัสดุ', desc: 'ค่าวัสดุ — '+taskName,
-        amount: toBase(matTotal), docno: '', task: taskName,
+        amount: matTotalUSD, docno: '', task: taskName,
         _bmSource: true, createdAt: new Date().toISOString()
       });
     }
@@ -4628,14 +4647,14 @@ function bmSave(){
       db[_curId].txns.push({
         id: _acctTxnId(), date: txnDate, type: 'expense',
         cat: 'ค่าแรงงาน', desc: 'ค่าแรงงาน — '+taskName,
-        amount: toBase(labTotal), docno: '', task: taskName,
+        amount: labTotalUSD, docno: '', task: taskName,
         _bmSource: true, createdAt: new Date().toISOString()
       });
     }
     _acctSave(db);
     if(matTotal > 0 || labTotal > 0) {
       const c = getCurr();
-      pmToast('📒 บันทึกลงบัญชี: '+taskName+' — วัสดุ '+c.sym+(toDisplay(matTotal)||0).toLocaleString()+' / แรงงาน '+c.sym+(toDisplay(labTotal)||0).toLocaleString(), 'var(--green)');
+      pmToast('📒 บันทึกลงบัญชี: '+taskName+' — วัสดุ '+c.sym+matTotalDisplay.toLocaleString()+' / แรงงาน '+c.sym+labTotalDisplay.toLocaleString(), 'var(--green)');
     }
   }
 }
@@ -5385,6 +5404,44 @@ function acctAddTxn(){
   acctLoadProject(_acctProjId);
   pmToast((_acctType==='income'?'รายรับ':'รายจ่าย')+': '+desc+' — '+acctFmt(amtBase),_acctType==='income'?'var(--green)':'var(--red)');
 }
+
+// ════════════ ACCOUNTING EDIT TRANSACTION ════════════
+let _acctEditId = null;
+
+function acctEditTxn(txnId) {
+  if(!_acctProjId) return;
+  const db = _acctDB();
+  const data = db[_acctProjId] || {};
+  const txn = (data.txns||[]).find(t => t.id === txnId);
+  if(!txn) return;
+  _acctEditId = txnId;
+
+  // สร้าง modal แบบ simple prompt
+  const c = getCurr();
+  const currentAmt = toDisplay(txn.amount).toFixed(2);
+  const newDesc = prompt('คำอธิบาย:', txn.desc || '');
+  if(newDesc === null) return; // cancelled
+  const newAmtStr = prompt('จำนวนเงิน ('+c.code+'):', currentAmt);
+  if(newAmtStr === null) return;
+  const newAmt = parseFloat(newAmtStr);
+  if(isNaN(newAmt) || newAmt <= 0) { pmToast('จำนวนเงินไม่ถูกต้อง','var(--red)'); return; }
+  const newDate = prompt('วันที่ (YYYY-MM-DD):', txn.date || '');
+  if(newDate === null) return;
+
+  // Update
+  const dbU = _acctDB();
+  const txns = dbU[_acctProjId]?.txns || [];
+  const idx = txns.findIndex(t => t.id === txnId);
+  if(idx >= 0) {
+    txns[idx].desc = newDesc.trim();
+    txns[idx].amount = toBase(newAmt);
+    txns[idx].date = newDate.trim();
+    dbU[_acctProjId].txns = txns;
+    _acctSave(dbU);
+    acctLoadProject(_acctProjId);
+    pmToast('✅ แก้ไขรายการแล้ว', 'var(--green)');
+  }
+}
 function acctDelTxn(txnId){if(!_acctProjId||!confirm('ลบรายการนี้?'))return;const db=_acctDB();if(db[_acctProjId])db[_acctProjId].txns=(db[_acctProjId].txns||[]).filter(t=>t.id!==txnId);_acctSave(db);acctLoadProject(_acctProjId);pmToast('ลบรายการแล้ว','var(--red)');}
 function acctClearFilters(){['acct-filter-type','acct-filter-cat','acct-filter-task'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=id==='acct-filter-type'?'all':id==='acct-filter-cat'?'all':'all';});const m=document.getElementById('acct-filter-month');if(m)m.value='';acctRenderTxns();}
 function acctRenderAll(projId,projBudget,projData){
@@ -5421,7 +5478,7 @@ function acctRenderTxns(rawTxns){
   body.innerHTML=txns.map((t,i)=>{const isInc=t.type==='income';if(isInc)tI+=t.amount;else tE+=t.amount;
     const dt=t.date?(()=>{const d=new Date(t.date);return d.getDate()+'/'+(d.getMonth()+1)+'/'+(d.getFullYear()+543);})():'—';
     const aH=isInc?'<td class="acct-amt-inc" style="text-align:right">+'+acctFmt(t.amount)+'</td>':'<td class="acct-amt-exp" style="text-align:right">−'+acctFmt(t.amount)+'</td>';
-    return '<tr><td style="color:var(--text3);font-size:10px;font-family:IBM Plex Mono,monospace">'+(i+1)+'</td><td style="font-size:11px;color:var(--text2)">'+dt+'</td><td><span class="acct-cat-badge '+t.type+'">'+(isInc?'รับ':'จ่าย')+'</span></td><td style="font-size:12px">'+escHtml(t.cat||'')+'</td><td style="font-size:12px">'+escHtml(t.desc||'')+'</td>'+aH+'<td style="font-size:11px;color:var(--text3)">'+escHtml(t.docno||'—')+'</td><td style="font-size:11px;color:var(--text2)">'+escHtml(t.task||'—')+'</td><td><button onclick="acctDelTxn(\''+t.id+'\')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:2px 5px" onmouseover="this.style.color=\'var(--red)\'" onmouseout="this.style.color=\'var(--text3)\'">🗑</button></td></tr>';
+    return '<tr><td style="color:var(--text3);font-size:10px;font-family:IBM Plex Mono,monospace">'+(i+1)+'</td><td style="font-size:11px;color:var(--text2)">'+dt+'</td><td><span class="acct-cat-badge '+t.type+'">'+(isInc?'รับ':'จ่าย')+'</span></td><td style="font-size:12px">'+escHtml(t.cat||'')+'</td><td style="font-size:12px">'+escHtml(t.desc||'')+'</td>'+aH+'<td style="font-size:11px;color:var(--text3)">'+escHtml(t.docno||'—')+'</td><td style="font-size:11px;color:var(--text2)">'+escHtml(t.task||'—')+'</td><td><button onclick="acctDelTxn(\''+t.id+'\')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:2px 5px" onmouseover="this.style.color=\'var(--red)\'" onmouseout="this.style.color=\'var(--text3)\'">🗑️</button></td></tr>';
   }).join('');
   const net=tI-tE;
   if(foot)foot.innerHTML='<tr style="background:var(--bg3);font-weight:700;font-size:12px"><td colspan="5" style="padding:9px 14px;text-align:right;color:var(--text2)">รวม ('+txns.length+' รายการ)</td><td style="text-align:right;padding:9px 14px;font-family:IBM Plex Mono,monospace;color:'+(net>=0?'var(--green)':'var(--red)')+')">'+(net>=0?'+':'−')+c.sym+' '+toDisplay(Math.abs(net)).toLocaleString('en-US',{minimumFractionDigits:2})+'</td><td colspan="3"></td></tr>';
@@ -5689,7 +5746,7 @@ async function acctExportPDF(){
         <thead><tr>
           <th style="width:36px">#</th><th style="width:90px">วันที่</th><th style="width:70px">ประเภท</th>
           <th>หมวดหมู่</th><th>คำอธิบาย</th><th style="text-align:right">จำนวนเงิน</th>
-          <th>เลขที่เอกสาร</th><th>งาน</th><th style="width:60px"></th>
+          <th>เลขที่เอกสาร</th><th>งาน</th><th style="width:80px"></th>
         </tr></thead>
         <tbody id="acct-txn-body"><tr><td colspan="9"><div class="acct-empty">ยังไม่มีรายการ — เลือกโปรเจกต์และเพิ่มรายการได้เลยครับ</div></td></tr></tbody>
         <tfoot id="acct-txn-foot"></tfoot>
