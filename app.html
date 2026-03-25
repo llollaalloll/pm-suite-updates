@@ -46,7 +46,7 @@ header{
 .tab-nav{
   background:var(--bg2);border-bottom:1px solid var(--border);
   display:flex;padding:0 28px;gap:0;
-  position:sticky;top:56px;z-index:150;
+  position:sticky;top:0;z-index:150;
 }
 .tab-btn{
   padding:14px 20px;font-size:12px;font-weight:600;color:var(--text3);
@@ -5478,7 +5478,7 @@ function acctRenderTxns(rawTxns){
   body.innerHTML=txns.map((t,i)=>{const isInc=t.type==='income';if(isInc)tI+=t.amount;else tE+=t.amount;
     const dt=t.date?(()=>{const d=new Date(t.date);return d.getDate()+'/'+(d.getMonth()+1)+'/'+(d.getFullYear()+543);})():'—';
     const aH=isInc?'<td class="acct-amt-inc" style="text-align:right">+'+acctFmt(t.amount)+'</td>':'<td class="acct-amt-exp" style="text-align:right">−'+acctFmt(t.amount)+'</td>';
-    return '<tr><td style="color:var(--text3);font-size:10px;font-family:IBM Plex Mono,monospace">'+(i+1)+'</td><td style="font-size:11px;color:var(--text2)">'+dt+'</td><td><span class="acct-cat-badge '+t.type+'">'+(isInc?'รับ':'จ่าย')+'</span></td><td style="font-size:12px">'+escHtml(t.cat||'')+'</td><td style="font-size:12px">'+escHtml(t.desc||'')+'</td>'+aH+'<td style="font-size:11px;color:var(--text3)">'+escHtml(t.docno||'—')+'</td><td style="font-size:11px;color:var(--text2)">'+escHtml(t.task||'—')+'</td><td><button onclick="acctDelTxn(\''+t.id+'\')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:2px 5px" onmouseover="this.style.color=\'var(--red)\'" onmouseout="this.style.color=\'var(--text3)\'">🗑️</button></td></tr>';
+    return '<tr><td style="color:var(--text3);font-size:10px;font-family:IBM Plex Mono,monospace">'+(i+1)+'</td><td style="font-size:11px;color:var(--text2)">'+dt+'</td><td><span class="acct-cat-badge '+t.type+'">'+(isInc?'รับ':'จ่าย')+'</span></td><td style="font-size:12px">'+escHtml(t.cat||'')+'</td><td style="font-size:12px">'+escHtml(t.desc||'')+'</td>'+aH+'<td style="font-size:11px;color:var(--text3)">'+escHtml(t.docno||'—')+'</td><td style="font-size:11px;color:var(--text2)">'+escHtml(t.task||'—')+'</td><td style="white-space:nowrap"><button onclick="acctEditTxn(\''+t.id+'\')" title="แก้ไข" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:2px 5px;border-radius:3px;margin-right:2px" onmouseover="this.style.color=\'var(--accent)\'" onmouseout="this.style.color=\'var(--text3)\'">✏️</button><button onclick="acctDelTxn(\''+t.id+'\')" title="ลบ" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:2px 5px;border-radius:3px" onmouseover="this.style.color=\'var(--red)\'" onmouseout="this.style.color=\'var(--text3)\'">🗑️</button></td></tr>';
   }).join('');
   const net=tI-tE;
   if(foot)foot.innerHTML='<tr style="background:var(--bg3);font-weight:700;font-size:12px"><td colspan="5" style="padding:9px 14px;text-align:right;color:var(--text2)">รวม ('+txns.length+' รายการ)</td><td style="text-align:right;padding:9px 14px;font-family:IBM Plex Mono,monospace;color:'+(net>=0?'var(--green)':'var(--red)')+')">'+(net>=0?'+':'−')+c.sym+' '+toDisplay(Math.abs(net)).toLocaleString('en-US',{minimumFractionDigits:2})+'</td><td colspan="3"></td></tr>';
