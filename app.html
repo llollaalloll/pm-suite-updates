@@ -581,7 +581,206 @@ body { overflow: hidden; }
 #lic-footer a{color:#C47F00;}
 @keyframes lic-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 .lic-shake{animation:lic-shake 0.4s ease;}
-</style>
+
+/* ═══════ PROJECT ACCOUNTING MODULE ═══════ */
+/* LT Gate Banner */
+#acct-lt-gate{
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  height:calc(100vh - 220px);gap:18px;
+}
+#acct-lt-gate.show{display:flex;}
+.acct-gate-box{
+  background:var(--bg2);border:2px solid var(--accent);border-radius:14px;
+  padding:32px 40px;text-align:center;max-width:460px;
+  box-shadow:0 12px 40px rgba(196,127,0,0.15);
+}
+.acct-gate-icon{font-size:44px;margin-bottom:12px;}
+.acct-gate-title{font-size:18px;font-weight:700;color:var(--accent);margin-bottom:8px;}
+.acct-gate-desc{font-size:13px;color:var(--text2);line-height:1.7;}
+
+/* Summary Row */
+.acct-summary-row{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;
+}
+.acct-sum-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:9px;
+  padding:13px 15px;
+}
+.acct-sum-card.inc{border-color:rgba(39,134,90,0.4);}
+.acct-sum-card.exp{border-color:rgba(192,57,43,0.4);}
+.acct-sum-card.profit.pos{border-color:rgba(39,134,90,0.6);background:rgba(39,134,90,0.05);}
+.acct-sum-card.profit.neg{border-color:rgba(192,57,43,0.6);background:rgba(192,57,43,0.05);}
+.acct-sum-card.budget{border-color:rgba(196,127,0,0.4);}
+.acct-sum-card.margin{border-color:rgba(109,79,194,0.4);}
+.acct-sum-lbl{font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.acct-sum-val{font-size:20px;font-weight:700;font-family:'IBM Plex Mono',monospace;}
+.acct-sum-card.inc .acct-sum-val{color:var(--green);}
+.acct-sum-card.exp .acct-sum-val{color:var(--red);}
+.acct-sum-card.profit.pos .acct-sum-val{color:var(--green);}
+.acct-sum-card.profit.neg .acct-sum-val{color:var(--red);}
+.acct-sum-card.budget .acct-sum-val{color:var(--accent);}
+.acct-sum-card.margin .acct-sum-val{color:var(--purple);}
+.acct-sum-sub{font-size:10px;color:var(--text3);margin-top:2px;}
+
+/* Toolbar */
+.acct-toolbar{
+  display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;
+}
+.acct-filter-row{
+  display:flex;gap:8px;align-items:center;margin-left:auto;flex-wrap:wrap;
+}
+.acct-sel{
+  background:var(--bg2);border:1px solid var(--border2);color:var(--text);
+  font-family:inherit;font-size:12px;padding:7px 10px;border-radius:6px;outline:none;
+}
+.acct-sel:focus{border-color:var(--accent);}
+
+/* Transactions Table */
+.acct-table-wrap{
+  background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;margin-bottom:20px;
+}
+.acct-tbl{width:100%;border-collapse:collapse;}
+.acct-tbl th{
+  background:var(--bg3);font-size:9px;font-weight:700;color:var(--text3);
+  letter-spacing:1px;text-transform:uppercase;padding:8px 14px;
+  text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;
+}
+.acct-tbl td{
+  padding:9px 14px;font-size:12px;border-bottom:1px solid var(--border);
+  vertical-align:middle;
+}
+.acct-tbl tr:last-child td{border-bottom:none;}
+.acct-tbl tr:hover td{background:rgba(255,255,255,0.015);}
+.acct-tbl .acct-amt-inc{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--green);}
+.acct-tbl .acct-amt-exp{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--red);}
+.acct-cat-badge{
+  font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;
+  display:inline-block;white-space:nowrap;
+}
+.acct-cat-badge.income{background:var(--green-soft);color:var(--green);}
+.acct-cat-badge.expense{background:var(--red-soft);color:var(--red);}
+.acct-doc-link{
+  font-size:10px;color:var(--blue);text-decoration:none;
+  background:var(--blue-soft);padding:2px 7px;border-radius:4px;
+}
+.acct-row-del{
+  background:none;border:none;color:var(--text3);cursor:pointer;
+  font-size:13px;padding:2px 5px;border-radius:3px;transition:color .15s;
+}
+.acct-row-del:hover{color:var(--red);}
+.acct-row-edit{
+  background:none;border:none;color:var(--text3);cursor:pointer;
+  font-size:12px;padding:2px 5px;border-radius:3px;transition:color .15s;
+}
+.acct-row-edit:hover{color:var(--accent);}
+.acct-empty{
+  text-align:center;padding:40px;color:var(--text3);font-size:13px;line-height:2;
+}
+
+/* Add Transaction Form */
+.acct-add-panel{
+  background:var(--bg2);border:1px solid var(--border2);border-radius:10px;
+  padding:16px 18px;margin-bottom:18px;
+}
+.acct-add-title{
+  font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;
+  letter-spacing:0.8px;margin-bottom:12px;display:flex;align-items:center;gap:6px;
+}
+.acct-add-grid{
+  display:grid;grid-template-columns:1fr 1fr 1.2fr 0.8fr 1fr 1fr auto;
+  gap:9px;align-items:end;
+}
+.acct-inp{
+  background:var(--bg3);border:1px solid var(--border2);color:var(--text);
+  font-family:inherit;font-size:12px;padding:8px 11px;border-radius:6px;
+  outline:none;width:100%;transition:border-color .2s;
+}
+.acct-inp:focus{border-color:var(--accent);}
+.acct-inp-money{font-family:'IBM Plex Mono',monospace;text-align:right;}
+.acct-type-toggle{
+  display:flex;border:1px solid var(--border2);border-radius:6px;overflow:hidden;
+  height:36px;flex-shrink:0;
+}
+.acct-type-btn{
+  flex:1;border:none;font-family:inherit;font-size:11px;font-weight:700;
+  cursor:pointer;transition:all .15s;padding:0 10px;white-space:nowrap;
+}
+.acct-type-btn.inc{background:var(--bg3);color:var(--text3);}
+.acct-type-btn.inc.active{background:var(--green);color:#fff;}
+.acct-type-btn.exp{background:var(--bg3);color:var(--text3);}
+.acct-type-btn.exp.active{background:var(--red);color:#fff;}
+
+/* P&L Section */
+.acct-pl-wrap{margin-bottom:20px;}
+.acct-pl-table{width:100%;border-collapse:collapse;}
+.acct-pl-table th{
+  background:var(--bg3);font-size:9px;font-weight:700;color:var(--text3);
+  letter-spacing:1px;text-transform:uppercase;padding:8px 14px;
+  border-bottom:1px solid var(--border);
+}
+.acct-pl-table td{
+  padding:8px 14px;font-size:12px;border-bottom:1px solid var(--border);
+  vertical-align:middle;
+}
+.acct-pl-table tr.section-hdr td{
+  background:var(--bg3);font-weight:700;font-size:11px;color:var(--text);
+  padding:9px 14px;
+}
+.acct-pl-table tr.total-row td{
+  background:var(--accent-soft);font-weight:700;font-size:13px;
+  border-top:2px solid var(--accent);
+}
+.acct-pl-table tr.subtotal td{
+  background:rgba(255,255,255,0.01);font-weight:600;
+  border-top:1px solid var(--border2);
+}
+.acct-pl-amt{font-family:'IBM Plex Mono',monospace;text-align:right;}
+.acct-pl-amt.pos{color:var(--green);}
+.acct-pl-amt.neg{color:var(--red);}
+.acct-pl-amt.acc{color:var(--accent);}
+
+/* Progress bar comparison */
+.acct-vs-bar{
+  display:flex;height:5px;border-radius:3px;overflow:hidden;margin-top:4px;
+}
+.acct-vs-inc{background:var(--green);}
+.acct-vs-exp{background:var(--red);}
+
+/* Modal */
+#acct-modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:6000;
+  display:none;align-items:center;justify-content:center;
+}
+#acct-modal-overlay.open{display:flex;}
+#acct-modal{
+  background:var(--bg);border:1px solid var(--border2);border-radius:12px;
+  width:580px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;
+  box-shadow:0 24px 60px rgba(0,0,0,0.4);overflow:hidden;
+}
+.acct-modal-hdr{
+  background:var(--bg2);padding:14px 18px;display:flex;align-items:center;
+  justify-content:space-between;border-bottom:1px solid var(--border2);flex-shrink:0;
+}
+.acct-modal-title{font-size:13px;font-weight:700;color:var(--text);}
+.acct-modal-close{
+  background:none;border:none;color:var(--text3);cursor:pointer;
+  font-size:18px;line-height:1;padding:2px 6px;
+}
+.acct-modal-body{padding:18px;overflow-y:auto;flex:1;}
+.acct-modal-footer{
+  padding:12px 18px;border-top:1px solid var(--border);
+  display:flex;gap:8px;justify-content:flex-end;flex-shrink:0;
+}
+
+/* Chart bar mini */
+.acct-bar-chart{display:flex;gap:4px;align-items:flex-end;height:80px;margin-top:8px;}
+.acct-bar-item{display:flex;flex-direction:column;align-items:center;flex:1;gap:3px;}
+.acct-bar-bg{width:100%;background:var(--border);border-radius:3px 3px 0 0;position:relative;min-height:2px;}
+.acct-bar-fill-inc{position:absolute;bottom:0;left:0;right:0;background:var(--green);border-radius:3px 3px 0 0;}
+.acct-bar-fill-exp{position:absolute;bottom:0;left:0;right:0;background:var(--red);border-radius:3px 3px 0 0;}
+.acct-bar-lbl{font-size:8px;color:var(--text3);text-align:center;white-space:nowrap;}
+
 </head>
 <body>
 
@@ -642,6 +841,7 @@ body { overflow: hidden; }
   <button class="tab-btn active" onclick="switchTab('schedule')" data-i18n="tab_schedule">📅 Schedule Builder</button>
   <button class="tab-btn" onclick="switchTab('gantt')" data-i18n="tab_gantt">📊 Gantt Chart</button>
   <button class="tab-btn" onclick="switchTab('report')" data-i18n="tab_report">🤖 AI Report Generator</button>
+  <button class="tab-btn" id="tab-btn-acct" onclick="switchTab('acct')" style="color:var(--green)">📒 บัญชีโครงการ <span style="font-size:9px;background:rgba(39,134,90,0.15);border:1px solid rgba(39,134,90,0.4);color:var(--green);padding:1px 5px;border-radius:8px;margin-left:3px">LT</span></button>
   <button class="tab-btn" onclick="switchTab('renew')" style="color:#C47F00;margin-left:auto" data-i18n="tab_renew">🔄 ต่ออายุ License</button>
 </div>
 
@@ -1320,21 +1520,11 @@ function renderRenewStatus(){
   const el = document.getElementById('renew-status-body');
   if(!el) return;
   try{
-    // พยายามอ่านจาก localStorage ก่อน
-    let res = null;
     const stored = localStorage.getItem(_LIC_STORE);
-    if(stored){
-      try{
-        const { key } = JSON.parse(stored);
-        res = licValidateKey(key);
-      }catch(e){}
-    }
-    // ถ้าไม่มีหรือ invalid — ใช้ auto-grant key (SSV3D LT)
-    if(!res || res.expired){
-      const autoKey = licGenKey('SSV3D','LT');
-      res = licValidateKey(autoKey);
-    }
-    if(!res){ el.innerHTML='<div style="color:var(--text2);font-size:13px">ไม่พบข้อมูล License</div>'; return; }
+    if(!stored){ el.innerHTML='<div style="color:var(--text2);font-size:13px">ไม่พบข้อมูล License</div>'; return; }
+    const { key, name, type } = JSON.parse(stored);
+    const res = licValidateKey(key);
+    if(!res){ el.innerHTML='<div style="color:#E05555;font-size:13px">❌ License ไม่ถูกต้อง</div>'; return; }
     const ti = res.typeInfo;
     const expired = res.expired;
     const daysLeft = res.daysLeft;
@@ -4257,25 +4447,10 @@ function licActivate(){
 
 // ── Check stored license on load ──
 function licCheckOnLoad(){
-  // ถ้ามี key บันทึกไว้แล้ว ใช้ key นั้น
-  try{
-    const stored = localStorage.getItem(_LIC_STORE);
-    if(stored){
-      const {key} = JSON.parse(stored);
-      const res = licValidateKey(key);
-      if(res && !res.expired){ licGrant(res, false); return; }
-    }
-  } catch(e){}
-  // Auto-grant LT สำหรับ Electron app (License ผ่าน app store)
+  // License managed by Electron Hardware-ID lock — auto-grant LT
   const autoKey = licGenKey('SSV3D','LT');
   const res = licValidateKey(autoKey);
-  if(res){
-    licGrant(res, true);
-  } else {
-    // Fallback: ซ่อน overlay ให้ใช้งานได้เลย
-    const ov = document.getElementById('lic-overlay');
-    if(ov) ov.classList.add('hidden');
-  }
+  if(res) licGrant(res, true);
 }
 
 // ── Grant access ──
@@ -5089,7 +5264,864 @@ function toggleLang(){
   }catch(e){}
 })();
 
-</script>
+// ════════════════════════════════════════════════════════════
+// PROJECT ACCOUNTING MODULE — Phase 1
+// Storage key: 'aipm7_acct' → { [projectId]: { txns:[], notes:'' } }
+// ════════════════════════════════════════════════════════════
+
+const _ACCT_STORE = 'aipm7_acct';
+let _acctProjId   = null;   // currently selected project
+let _acctType     = 'income'; // current add type toggle
+
+// ── Helpers ──────────────────────────────────────────────────
+function _acctDB(){
+  try{ return JSON.parse(localStorage.getItem(_ACCT_STORE)||'{}'); }catch(e){ return {}; }
+}
+function _acctSave(db){
+  try{ localStorage.setItem(_ACCT_STORE, JSON.stringify(db)); }catch(e){ alert('Storage เต็มครับ'); }
+  // Sync to Electron file if available
+  if(window.require){
+    try{
+      const ipc = window.require('electron').ipcRenderer;
+      // store inside projects.json under special key
+      _dbGetAsync().then(pdb=>{
+        pdb['__acct__'] = db;
+        _dbSetAsync(pdb);
+      }).catch(()=>{});
+    }catch(e){}
+  }
+}
+function _acctGetProj(id){
+  const db = _acctDB();
+  if(!db[id]) db[id] = { txns:[], notes:'' };
+  return db[id];
+}
+function _acctTxnId(){ return 'tx'+Date.now()+Math.random().toString(36).slice(2,6); }
+
+// ── Format money for accounting ──────────────────────────────
+function acctFmt(n){
+  if(n===null||n===undefined||n==='') return '—';
+  const c = getCurr();
+  const v = toDisplay(n);
+  return c.sym+' '+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+// ── Check LT license ─────────────────────────────────────────
+function _acctIsLT(){
+  try{
+    const stored = localStorage.getItem(_LIC_STORE);
+    if(!stored) return false;
+    const {type} = JSON.parse(stored);
+    return type === 'LT';
+  }catch(e){ return false; }
+}
+
+// ── Initialize accounting tab ────────────────────────────────
+function acctInit(){
+  const isLT = _acctIsLT();
+  document.getElementById('acct-lt-gate').classList.toggle('show', !isLT);
+  document.getElementById('acct-main').style.display = isLT ? 'block' : 'none';
+  if(!isLT) return;
+
+  // Set today's date as default
+  const today = new Date();
+  const v = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  const dateEl = document.getElementById('acct-add-date');
+  if(dateEl && !dateEl.value) dateEl.value = v;
+
+  // Populate project selector from _dbGet()
+  _dbGetAsync().then(db=>{
+    // Also load accounting data that may have been stored in projects.json
+    if(db['__acct__']){
+      try{
+        const existing = _acctDB();
+        const merged = Object.assign({}, db['__acct__'], existing);
+        _acctSave(merged);
+      }catch(e){}
+    }
+    acctPopulateProjectSel(db);
+    // Auto-select current project
+    if(_curId){
+      document.getElementById('acct-proj-sel').value = _curId;
+      acctLoadProject(_curId);
+    }
+  });
+
+  // Update currency label
+  const c = getCurr();
+  const lbl = document.getElementById('acct-add-currency-lbl');
+  if(lbl) lbl.textContent = c.code;
+}
+
+// ── Populate project dropdown ─────────────────────────────────
+function acctPopulateProjectSel(db){
+  const sel = document.getElementById('acct-proj-sel');
+  if(!sel) return;
+  const curVal = sel.value;
+  sel.innerHTML = '<option value="">— เลือกโปรเจกต์ —</option>';
+  const keys = Object.keys(db).filter(k=>k!=='__acct__').sort((a,b)=>new Date(db[b].savedAt)-new Date(db[a].savedAt));
+  keys.forEach(id=>{
+    const p = db[id];
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = (p.name||'ไม่มีชื่อ');
+    sel.appendChild(opt);
+  });
+  if(curVal) sel.value = curVal;
+}
+
+// ── Load a project's accounting data ─────────────────────────
+function acctLoadProject(id){
+  _acctProjId = id || null;
+  if(!id){
+    document.getElementById('acct-proj-name-badge').textContent = '';
+    acctClearDisplay();
+    return;
+  }
+  _dbGetAsync().then(db=>{
+    const p = db[id];
+    const badge = document.getElementById('acct-proj-name-badge');
+    if(badge) badge.textContent = '— ' + (p ? p.name : id);
+
+    // Populate task dropdown
+    const taskSel = document.getElementById('acct-add-task');
+    const taskFilter = document.getElementById('acct-filter-task');
+    if(taskSel && p && p.state && p.state.tasks){
+      taskSel.innerHTML = '<option value="">— ทั่วไป —</option>';
+      taskFilter.innerHTML = '<option value="all">ทุก Task</option>';
+      p.state.tasks.forEach(t=>{
+        const opt1 = document.createElement('option');
+        opt1.value = t.name; opt1.textContent = t.name;
+        taskSel.appendChild(opt1);
+        const opt2 = document.createElement('option');
+        opt2.value = t.name; opt2.textContent = t.name;
+        taskFilter.appendChild(opt2);
+      });
+    }
+
+    // Build budget from task data
+    let projBudget = 0;
+    if(p && p.state && p.state.tasks){
+      p.state.tasks.forEach(t=>{
+        if(t.subtasks && t.subtasks.length > 0){
+          t.subtasks.forEach(s=>{ projBudget += (s.budgetMat||0) + (s.budgetLab||0); });
+        } else {
+          projBudget += (t.budgetMat||0) + (t.budgetLab||0);
+        }
+      });
+    }
+
+    acctRenderAll(id, projBudget, p);
+  });
+}
+
+// ── Clear display ─────────────────────────────────────────────
+function acctClearDisplay(){
+  const els = ['acct-s-income','acct-s-expense','acct-s-profit','acct-s-budget','acct-s-variance'];
+  els.forEach(id=>{ const e=document.getElementById(id); if(e) e.textContent='—'; });
+  const body = document.getElementById('acct-txn-body');
+  if(body) body.innerHTML = '<tr><td colspan="9"><div class="acct-empty">เลือกโปรเจกต์เพื่อดูรายการ</div></td></tr>';
+}
+
+// ── Set add type toggle ───────────────────────────────────────
+function acctSetType(type){
+  _acctType = type;
+  const incBtn = document.getElementById('acct-add-type-inc');
+  const expBtn = document.getElementById('acct-add-type-exp');
+  incBtn.classList.toggle('active', type==='income');
+  expBtn.classList.toggle('active', type==='expense');
+
+  // Update category options
+  const catSel = document.getElementById('acct-add-cat');
+  if(!catSel) return;
+  if(type==='income'){
+    catSel.innerHTML = [
+      'รายรับจากงาน','เงินมัดจำ','ค่างวด','Bonus / Variation Order',
+      'รายรับอื่นๆ'
+    ].map(c=>`<option value="${c}">${c}</option>`).join('');
+  } else {
+    catSel.innerHTML = [
+      'ค่าวัสดุ','ค่าแรงงาน','ค่าเครื่องจักร','ค่าขนส่ง',
+      'ค่าออกแบบ/วิศวกร','ค่าสาธารณูปโภค','ค่าเช่าพื้นที่/อุปกรณ์',
+      'ค่าใช้จ่ายทั่วไป','ภาษี/ค่าธรรมเนียม','อื่นๆ'
+    ].map(c=>`<option value="${c}">${c}</option>`).join('');
+  }
+}
+
+// ── Add transaction ───────────────────────────────────────────
+function acctAddTxn(){
+  if(!_acctProjId){ pmToast('⚠️ กรุณาเลือกโปรเจกต์ก่อนครับ','var(--red)'); return; }
+  const date   = document.getElementById('acct-add-date').value;
+  const cat    = document.getElementById('acct-add-cat').value;
+  const desc   = document.getElementById('acct-add-desc').value.trim();
+  const amtRaw = parseFloat(document.getElementById('acct-add-amount').value);
+  const docno  = document.getElementById('acct-add-docno').value.trim();
+  const task   = document.getElementById('acct-add-task').value;
+  if(!date){ pmToast('⚠️ กรุณาเลือกวันที่','var(--red)'); return; }
+  if(!desc){ pmToast('⚠️ กรุณากรอกคำอธิบาย','var(--red)'); return; }
+  if(!amtRaw||amtRaw<=0){ pmToast('⚠️ กรุณากรอกจำนวนเงิน','var(--red)'); return; }
+
+  // Store in base currency (USD)
+  const amtBase = toBase(amtRaw);
+
+  const txn = {
+    id: _acctTxnId(),
+    date, type: _acctType, cat, desc,
+    amount: amtBase,   // always stored in USD
+    docno, task,
+    createdAt: new Date().toISOString()
+  };
+
+  const db = _acctDB();
+  if(!db[_acctProjId]) db[_acctProjId] = { txns:[], notes:'' };
+  db[_acctProjId].txns.push(txn);
+  _acctSave(db);
+
+  // Clear form (keep date, type)
+  document.getElementById('acct-add-desc').value = '';
+  document.getElementById('acct-add-amount').value = '';
+  document.getElementById('acct-add-docno').value = '';
+  document.getElementById('acct-add-task').value = '';
+
+  acctLoadProject(_acctProjId);
+  const typeLabel = _acctType==='income' ? '💰 รายรับ' : '💸 รายจ่าย';
+  pmToast(`✅ เพิ่ม${typeLabel}: ${desc} — ${acctFmt(amtBase)}`, _acctType==='income'?'var(--green)':'var(--red)');
+}
+
+// ── Delete transaction ────────────────────────────────────────
+function acctDelTxn(txnId){
+  if(!_acctProjId) return;
+  if(!confirm('ลบรายการนี้?')) return;
+  const db = _acctDB();
+  if(db[_acctProjId]){
+    db[_acctProjId].txns = (db[_acctProjId].txns||[]).filter(t=>t.id!==txnId);
+    _acctSave(db);
+  }
+  acctLoadProject(_acctProjId);
+  pmToast('🗑️ ลบรายการแล้ว','var(--red)');
+}
+
+// ── Clear filters ─────────────────────────────────────────────
+function acctClearFilters(){
+  document.getElementById('acct-filter-type').value = 'all';
+  document.getElementById('acct-filter-cat').value = 'all';
+  document.getElementById('acct-filter-task').value = 'all';
+  document.getElementById('acct-filter-month').value = '';
+  acctRenderTxns();
+}
+
+// ── Render all ────────────────────────────────────────────────
+function acctRenderAll(projId, projBudget, projData){
+  const data = _acctGetProj(projId);
+  const txns = data.txns || [];
+
+  // Compute totals
+  const totalInc = txns.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const totalExp = txns.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const profit   = totalInc - totalExp;
+  const margin   = totalInc>0 ? (profit/totalInc*100) : 0;
+  const budgetUsedPct = projBudget>0 ? (totalExp/projBudget*100) : 0;
+  const variance = projBudget - totalExp;
+
+  // Summary cards
+  const _se = (id,v)=>{ const e=document.getElementById(id);if(e)e.textContent=v; };
+  const c = getCurr();
+  _se('acct-s-income', acctFmt(totalInc));
+  _se('acct-s-income-cnt', txns.filter(t=>t.type==='income').length + ' รายการ');
+  _se('acct-s-expense', acctFmt(totalExp));
+  _se('acct-s-expense-cnt', txns.filter(t=>t.type==='expense').length + ' รายการ');
+  _se('acct-s-profit', (profit>=0?'+':'')+acctFmt(profit).replace(c.sym+' ','') );
+  document.getElementById('acct-s-profit').textContent = (profit>=0?'+ ':'- ') + c.sym + ' ' + toDisplay(Math.abs(profit)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  _se('acct-s-margin', 'Gross Margin: '+margin.toFixed(1)+'%');
+  _se('acct-s-budget', projBudget>0 ? acctFmt(projBudget) : '—');
+  _se('acct-s-budget-used', projBudget>0 ? 'ใช้ไปแล้ว '+budgetUsedPct.toFixed(1)+'%' : 'ไม่มีงบประมาณ');
+  _se('acct-s-variance', projBudget>0 ? (variance>=0?'+ ':'- ')+c.sym+' '+toDisplay(Math.abs(variance)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—');
+  _se('acct-s-variance-lbl', projBudget>0 ? (variance>=0?'✅ ประหยัดงบ':'⚠️ เกินงบ') : 'vs งบประมาณ');
+
+  // Color profit card
+  const profCard = document.getElementById('acct-s-profit-card');
+  if(profCard){
+    profCard.classList.remove('pos','neg');
+    profCard.classList.add(profit>=0?'pos':'neg');
+  }
+  const profEl = document.getElementById('acct-s-profit');
+  if(profEl) profEl.style.color = profit>=0?'var(--green)':'var(--red)';
+  const varEl = document.getElementById('acct-s-variance');
+  if(varEl) varEl.style.color = variance>=0?'var(--green)':'var(--red)';
+
+  // Update category filter
+  const allCats = [...new Set(txns.map(t=>t.cat))];
+  const catFilter = document.getElementById('acct-filter-cat');
+  if(catFilter){
+    const curCat = catFilter.value;
+    catFilter.innerHTML = '<option value="all">ทุกหมวด</option>';
+    allCats.forEach(cat=>{
+      const opt = document.createElement('option');
+      opt.value = cat; opt.textContent = cat;
+      catFilter.appendChild(opt);
+    });
+    if(curCat) catFilter.value = curCat;
+  }
+
+  acctRenderTxns(txns);
+  acctRenderPL(txns, totalInc, totalExp, profit, projBudget, margin);
+  acctRenderMonthlyChart(txns);
+  acctRenderTaskBreakdown(txns, projData);
+}
+
+// ── Render transactions table ─────────────────────────────────
+function acctRenderTxns(rawTxns){
+  if(!_acctProjId) return;
+  const data = _acctGetProj(_acctProjId);
+  let txns = rawTxns || data.txns || [];
+
+  // Apply filters
+  const fType  = document.getElementById('acct-filter-type')?.value || 'all';
+  const fCat   = document.getElementById('acct-filter-cat')?.value  || 'all';
+  const fTask  = document.getElementById('acct-filter-task')?.value || 'all';
+  const fMonth = document.getElementById('acct-filter-month')?.value || '';
+  if(fType!=='all')  txns = txns.filter(t=>t.type===fType);
+  if(fCat!=='all')   txns = txns.filter(t=>t.cat===fCat);
+  if(fTask!=='all')  txns = txns.filter(t=>t.task===fTask);
+  if(fMonth)         txns = txns.filter(t=>t.date && t.date.startsWith(fMonth));
+
+  // Sort by date desc
+  txns = [...txns].sort((a,b)=>b.date.localeCompare(a.date));
+
+  const body = document.getElementById('acct-txn-body');
+  const foot = document.getElementById('acct-txn-foot');
+  if(!body) return;
+
+  if(!txns.length){
+    body.innerHTML = '<tr><td colspan="9"><div class="acct-empty">ไม่พบรายการ</div></td></tr>';
+    if(foot) foot.innerHTML='';
+    return;
+  }
+
+  const c = getCurr();
+  let totalInc=0, totalExp=0;
+  body.innerHTML = txns.map((t,i)=>{
+    const isInc = t.type==='income';
+    if(isInc) totalInc+=t.amount; else totalExp+=t.amount;
+    const dt = t.date ? (()=>{ const d=new Date(t.date); return d.getDate()+'/'+(d.getMonth()+1)+'/'+(d.getFullYear()+543); })() : '—';
+    const amtHtml = isInc
+      ? `<td class="acct-amt-inc" style="text-align:right">+${acctFmt(t.amount)}</td>`
+      : `<td class="acct-amt-exp" style="text-align:right">−${acctFmt(t.amount)}</td>`;
+    return `<tr>
+      <td style="color:var(--text3);font-size:10px;font-family:'IBM Plex Mono',monospace">${i+1}</td>
+      <td style="font-size:11px;color:var(--text2);white-space:nowrap">${dt}</td>
+      <td><span class="acct-cat-badge ${t.type}">${isInc?'💰 รับ':'💸 จ่าย'}</span></td>
+      <td style="font-size:12px">${escHtml(t.cat||'')}</td>
+      <td style="font-size:12px">${escHtml(t.desc||'')}</td>
+      ${amtHtml}
+      <td style="font-size:11px;color:var(--text3)">${t.docno?`<span class="acct-doc-link">${escHtml(t.docno)}</span>`:'—'}</td>
+      <td style="font-size:11px;color:var(--text2)">${t.task?escHtml(t.task):'—'}</td>
+      <td style="white-space:nowrap">
+        <button class="acct-row-del" onclick="acctDelTxn('${t.id}')" title="ลบ">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Footer totals
+  const netAmt = totalInc - totalExp;
+  if(foot){
+    foot.innerHTML = `<tr style="background:var(--bg3);font-weight:700;font-size:12px">
+      <td colspan="5" style="padding:9px 14px;text-align:right;color:var(--text2)">รวม (${txns.length} รายการ)</td>
+      <td style="text-align:right;padding:9px 14px;font-family:'IBM Plex Mono',monospace;color:${netAmt>=0?'var(--green)':'var(--red)'}">
+        ${netAmt>=0?'+':'−'}${c.sym} ${toDisplay(Math.abs(netAmt)).toLocaleString('en-US',{minimumFractionDigits:2})}
+      </td>
+      <td colspan="3"></td>
+    </tr>`;
+  }
+}
+
+// ── Render P&L table ──────────────────────────────────────────
+function acctRenderPL(txns, totalInc, totalExp, profit, projBudget, margin){
+  const body = document.getElementById('acct-pl-body');
+  if(!body) return;
+  const c = getCurr();
+  const fmt = n => c.sym + ' ' + toDisplay(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const clr = n => n>=0?'pos':'neg';
+
+  // Group expenses by category
+  const expByCat = {};
+  txns.filter(t=>t.type==='expense').forEach(t=>{
+    expByCat[t.cat] = (expByCat[t.cat]||0) + t.amount;
+  });
+  // Group income by category
+  const incByCat = {};
+  txns.filter(t=>t.type==='income').forEach(t=>{
+    incByCat[t.cat] = (incByCat[t.cat]||0) + t.amount;
+  });
+
+  let html = '';
+  // Income section
+  html += `<tr class="section-hdr"><td colspan="2">💰 รายรับ (Revenue)</td></tr>`;
+  Object.entries(incByCat).forEach(([cat,amt])=>{
+    html += `<tr><td style="padding-left:24px;font-size:11px;color:var(--text2)">${escHtml(cat)}</td>
+      <td class="acct-pl-amt" style="padding-right:16px">${fmt(amt)}</td></tr>`;
+  });
+  if(!Object.keys(incByCat).length){
+    html += `<tr><td style="padding-left:24px;font-size:11px;color:var(--text3)" colspan="2">ยังไม่มีรายรับ</td></tr>`;
+  }
+  html += `<tr class="subtotal">
+    <td style="padding-left:12px">รวมรายรับ</td>
+    <td class="acct-pl-amt ${clr(totalInc)}" style="padding-right:16px">${fmt(totalInc)}</td>
+  </tr>`;
+
+  // Expense section
+  html += `<tr class="section-hdr"><td colspan="2">💸 รายจ่าย (Expenses)</td></tr>`;
+  Object.entries(expByCat).forEach(([cat,amt])=>{
+    html += `<tr><td style="padding-left:24px;font-size:11px;color:var(--text2)">${escHtml(cat)}</td>
+      <td class="acct-pl-amt neg" style="padding-right:16px">−${fmt(amt)}</td></tr>`;
+  });
+  if(!Object.keys(expByCat).length){
+    html += `<tr><td style="padding-left:24px;font-size:11px;color:var(--text3)" colspan="2">ยังไม่มีรายจ่าย</td></tr>`;
+  }
+  html += `<tr class="subtotal">
+    <td style="padding-left:12px">รวมรายจ่าย</td>
+    <td class="acct-pl-amt neg" style="padding-right:16px">−${fmt(totalExp)}</td>
+  </tr>`;
+
+  // Profit
+  html += `<tr class="total-row">
+    <td style="padding:10px 14px">📊 กำไรสุทธิ (Net Profit)</td>
+    <td class="acct-pl-amt ${clr(profit)}" style="font-size:14px;padding-right:16px">
+      ${profit>=0?'+':'−'}${fmt(Math.abs(profit))}
+    </td>
+  </tr>`;
+  if(projBudget>0){
+    const variance = projBudget - totalExp;
+    html += `<tr>
+      <td style="padding-left:14px;font-size:11px;color:var(--text2)">🗂️ งบประมาณ (Budget)</td>
+      <td class="acct-pl-amt acc" style="padding-right:16px;font-size:11px">${fmt(projBudget)}</td>
+    </tr>
+    <tr>
+      <td style="padding-left:14px;font-size:11px;color:var(--text2)">📐 Budget Variance</td>
+      <td class="acct-pl-amt ${clr(variance)}" style="padding-right:16px;font-size:11px">
+        ${variance>=0?'+':'−'}${fmt(Math.abs(variance))}
+      </td>
+    </tr>`;
+  }
+  html += `<tr>
+    <td style="padding-left:14px;font-size:11px;color:var(--text2)">📈 Gross Margin</td>
+    <td class="acct-pl-amt ${clr(profit)}" style="padding-right:16px;font-size:11px">${margin.toFixed(1)}%</td>
+  </tr>`;
+
+  body.innerHTML = html;
+}
+
+// ── Render monthly bar chart ──────────────────────────────────
+function acctRenderMonthlyChart(txns){
+  const container = document.getElementById('acct-monthly-chart');
+  if(!container) return;
+
+  // Group by month
+  const months = {};
+  txns.forEach(t=>{
+    if(!t.date) return;
+    const ym = t.date.slice(0,7);
+    if(!months[ym]) months[ym] = {inc:0,exp:0};
+    if(t.type==='income') months[ym].inc+=t.amount;
+    else months[ym].exp+=t.amount;
+  });
+
+  const keys = Object.keys(months).sort();
+  if(!keys.length){ container.innerHTML='<div style="color:var(--text3);font-size:11px;padding:10px">ยังไม่มีข้อมูล</div>'; return; }
+
+  const maxVal = Math.max(...keys.flatMap(k=>[months[k].inc,months[k].exp]), 0.01);
+  const c = getCurr();
+
+  container.innerHTML = keys.map(ym=>{
+    const d = months[ym];
+    const incH = Math.round((d.inc/maxVal)*88);
+    const expH = Math.round((d.exp/maxVal)*88);
+    const parts = ym.split('-');
+    const lbl = parts[1]+'/'+String(parseInt(parts[0])+543).slice(-2);
+    return `<div class="acct-bar-item" style="flex:1;min-width:28px;max-width:50px">
+      <div style="position:relative;height:88px;width:100%;display:flex;gap:1px;align-items:flex-end">
+        <div style="flex:1;height:${incH}px;background:var(--green);border-radius:2px 2px 0 0;min-height:2px"
+          title="รายรับ: ${c.sym}${toDisplay(d.inc).toLocaleString('en-US')}"></div>
+        <div style="flex:1;height:${expH}px;background:var(--red);border-radius:2px 2px 0 0;min-height:2px"
+          title="รายจ่าย: ${c.sym}${toDisplay(d.exp).toLocaleString('en-US')}"></div>
+      </div>
+      <div style="font-size:8px;color:var(--text3);text-align:center;margin-top:3px;white-space:nowrap">${lbl}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Render task breakdown ─────────────────────────────────────
+function acctRenderTaskBreakdown(txns, projData){
+  const body = document.getElementById('acct-task-body');
+  if(!body) return;
+
+  // Build task budget map
+  const taskBudgets = {};
+  if(projData && projData.state && projData.state.tasks){
+    projData.state.tasks.forEach(t=>{
+      let bgt = 0;
+      if(t.subtasks && t.subtasks.length>0){
+        t.subtasks.forEach(s=>{ bgt+=(s.budgetMat||0)+(s.budgetLab||0); });
+      } else {
+        bgt = (t.budgetMat||0)+(t.budgetLab||0);
+      }
+      if(bgt>0) taskBudgets[t.name] = bgt;
+    });
+  }
+
+  // Actual spending by task
+  const taskActual = {};
+  txns.filter(t=>t.type==='expense'&&t.task).forEach(t=>{
+    taskActual[t.task] = (taskActual[t.task]||0) + t.amount;
+  });
+
+  const allTasks = [...new Set([...Object.keys(taskBudgets),...Object.keys(taskActual)])];
+  if(!allTasks.length){
+    body.innerHTML='<tr><td colspan="5"><div class="acct-empty">ยังไม่มีข้อมูลรายจ่ายตาม Task</div></td></tr>';
+    return;
+  }
+
+  const c = getCurr();
+  const fmt = n => c.sym+' '+toDisplay(n).toLocaleString('en-US',{minimumFractionDigits:2});
+  body.innerHTML = allTasks.map(name=>{
+    const bgt = taskBudgets[name]||0;
+    const act = taskActual[name]||0;
+    const diff = bgt - act;
+    const pct = bgt>0 ? (act/bgt*100) : (act>0?999:0);
+    const pctDisplay = bgt>0 ? pct.toFixed(1)+'%' : (act>0?'ไม่มีงบ':'—');
+    const barW = Math.min(100, pct);
+    const barColor = pct>100?'var(--red)':pct>80?'var(--accent)':'var(--green)';
+    return `<tr>
+      <td style="font-size:12px">${escHtml(name)}</td>
+      <td class="acct-pl-amt acc">${bgt>0?fmt(bgt):'—'}</td>
+      <td class="acct-pl-amt ${act>0?'neg':''}">
+        ${act>0?'−'+fmt(act):'—'}
+      </td>
+      <td class="acct-pl-amt ${diff>=0?'pos':'neg'}">
+        ${bgt>0?(diff>=0?'+':'-')+fmt(Math.abs(diff)):'—'}
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${barW}%;background:${barColor};border-radius:3px;transition:width .3s"></div>
+          </div>
+          <span style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:${barColor};white-space:nowrap">${pctDisplay}</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Export Excel ──────────────────────────────────────────────
+async function acctExportExcel(){
+  if(!_acctProjId){ pmToast('⚠️ กรุณาเลือกโปรเจกต์','var(--red)'); return; }
+  if(typeof ExcelJS==='undefined'){ pmToast('⚠️ กำลังโหลด ExcelJS...','var(--accent)'); return; }
+
+  _dbGetAsync().then(async db=>{
+    const p = db[_acctProjId];
+    const projName = p?p.name:'Project';
+    const data = _acctGetProj(_acctProjId);
+    const txns = (data.txns||[]).sort((a,b)=>a.date.localeCompare(b.date));
+    const c = getCurr();
+
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'AI Construction PM Suite';
+    wb.created = new Date();
+
+    // ─ Sheet 1: Transactions ─
+    const ws1 = wb.addWorksheet('รายการ');
+    ws1.columns = [
+      {header:'#',            key:'no',    width:5},
+      {header:'วันที่',       key:'date',  width:14},
+      {header:'ประเภท',      key:'type',  width:10},
+      {header:'หมวดหมู่',   key:'cat',   width:20},
+      {header:'คำอธิบาย',   key:'desc',  width:35},
+      {header:'จำนวนเงิน ('+c.code+')', key:'amt', width:18},
+      {header:'เลขที่เอกสาร', key:'doc',  width:16},
+      {header:'Task',         key:'task',  width:25},
+    ];
+    // Style header
+    ws1.getRow(1).eachCell(cell=>{
+      cell.font = {bold:true, color:{argb:'FF1A1208'}};
+      cell.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFC47F00'}};
+      cell.alignment = {vertical:'middle',horizontal:'center'};
+      cell.border = {bottom:{style:'thin',color:{argb:'FFA06500'}}};
+    });
+
+    let row=2, runInc=0, runExp=0;
+    txns.forEach((t,i)=>{
+      const isInc = t.type==='income';
+      const amt = toDisplay(t.amount);
+      if(isInc) runInc+=amt; else runExp+=amt;
+      const wrow = ws1.addRow({
+        no: i+1,
+        date: t.date,
+        type: isInc?'รายรับ':'รายจ่าย',
+        cat: t.cat||'',
+        desc: t.desc||'',
+        amt: isInc ? amt : -amt,
+        doc: t.docno||'',
+        task: t.task||'',
+      });
+      // Color rows
+      wrow.getCell('type').font = {color:{argb: isInc?'FF27865A':'FFC0392B'}, bold:true};
+      wrow.getCell('amt').font  = {color:{argb: isInc?'FF27865A':'FFC0392B'}, bold:true};
+      wrow.getCell('amt').numFmt = '#,##0.00';
+      wrow.getCell('amt').alignment = {horizontal:'right'};
+    });
+
+    // Summary rows
+    ws1.addRow([]);
+    ws1.addRow({no:'', date:'', type:'', cat:'', desc:'รวมรายรับ', amt:runInc});
+    ws1.addRow({no:'', date:'', type:'', cat:'', desc:'รวมรายจ่าย', amt:-runExp});
+    const netRow = ws1.addRow({no:'', date:'', type:'', cat:'', desc:'กำไร / ขาดทุน', amt:runInc-runExp});
+    netRow.font = {bold:true, size:12};
+    netRow.getCell('amt').numFmt = '#,##0.00';
+
+    // ─ Sheet 2: P&L ─
+    const ws2 = wb.addWorksheet('P&L');
+    ws2.addRow(['📑 P&L Statement — '+projName]);
+    ws2.addRow(['สกุลเงิน:', c.flag+' '+c.code+' ('+c.name+')']);
+    ws2.addRow(['Export วันที่:', new Date().toLocaleDateString('th-TH')]);
+    ws2.addRow([]);
+    ws2.addRow(['รายการ','จำนวนเงิน']);
+    ws2.getRow(5).font = {bold:true};
+    ws2.getRow(5).fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFF5F3EE'}};
+
+    // Income
+    ws2.addRow(['💰 รายรับ (Revenue)','']);
+    const incByCat={};
+    txns.filter(t=>t.type==='income').forEach(t=>{ incByCat[t.cat]=(incByCat[t.cat]||0)+toDisplay(t.amount); });
+    Object.entries(incByCat).forEach(([cat,amt])=>{ ws2.addRow(['  '+cat, amt]); });
+    ws2.addRow(['รวมรายรับ', runInc]).font={bold:true};
+
+    ws2.addRow([]);
+    ws2.addRow(['💸 รายจ่าย (Expenses)','']);
+    const expByCat={};
+    txns.filter(t=>t.type==='expense').forEach(t=>{ expByCat[t.cat]=(expByCat[t.cat]||0)+toDisplay(t.amount); });
+    Object.entries(expByCat).forEach(([cat,amt])=>{ ws2.addRow(['  '+cat, -amt]); });
+    ws2.addRow(['รวมรายจ่าย', -runExp]).font={bold:true};
+
+    ws2.addRow([]);
+    const netPL = ws2.addRow(['📊 กำไรสุทธิ', runInc-runExp]);
+    netPL.font = {bold:true, size:13, color:{argb:runInc>=runExp?'FF27865A':'FFC0392B'}};
+
+    ws2.getColumn(2).numFmt = '#,##0.00';
+    ws2.getColumn(1).width = 35;
+    ws2.getColumn(2).width = 18;
+
+    // Save
+    const buf = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const today=new Date();
+    const ds=today.getDate()+'-'+(today.getMonth()+1)+'-'+(today.getFullYear()+543);
+    const fname = 'Accounting_'+(projName.replace(/\s+/g,'_'))+`_${ds}.xlsx`;
+    await saveFileWithPicker(blob, fname, 'รายงานการเงิน Excel');
+    pmToast('📥 Export Excel สำเร็จ','var(--green)');
+  });
+}
+
+// ── Export PDF ────────────────────────────────────────────────
+async function acctExportPDF(){
+  if(!_acctProjId){ pmToast('⚠️ กรุณาเลือกโปรเจกต์','var(--red)'); return; }
+  if(typeof jspdf==='undefined'&&typeof window.jsPDF==='undefined'){ pmToast('⚠️ jsPDF ไม่พร้อม','var(--red)'); return; }
+
+  const overlay = document.getElementById('pdf-loading-overlay');
+  if(overlay){ overlay.classList.add('show'); document.getElementById('pdf-loading-text').textContent='📄 กำลังสร้าง PDF...'; }
+
+  try{
+    _dbGetAsync().then(db=>{
+      const p = db[_acctProjId];
+      const projName = p?p.name:'Project';
+      const data = _acctGetProj(_acctProjId);
+      const txns = (data.txns||[]).sort((a,b)=>a.date.localeCompare(b.date));
+      const c = getCurr();
+
+      const totalInc = txns.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+      const totalExp = txns.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+      const profit   = totalInc - totalExp;
+      const margin   = totalInc>0?(profit/totalInc*100):0;
+      const fmt = n => c.sym+' '+toDisplay(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+      const { jsPDF } = window.jspdf || {};
+      const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+      const W = 210, ml = 14, mr = 14, tw = W - ml - mr;
+      let y = 16;
+
+      // ─ Header ─
+      doc.setFillColor(196,127,0);
+      doc.rect(0,0,W,18,'F');
+      doc.setTextColor(26,18,8);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(14);
+      doc.text('PROJECT ACCOUNTING REPORT', ml, 12);
+      doc.setFontSize(9);
+      doc.text('AI Construction PM Suite — SSV3D', W-mr, 12, {align:'right'});
+      y = 26;
+
+      // ─ Project info ─
+      doc.setTextColor(44,42,37);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(12);
+      doc.text(projName, ml, y);
+      y += 6;
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(9);
+      doc.setTextColor(107,103,96);
+      const today = new Date();
+      doc.text('Export: '+today.toLocaleDateString('th-TH')+' | Currency: '+c.flag+' '+c.code, ml, y);
+      y += 10;
+
+      // ─ Summary boxes ─
+      const boxW = (tw-6)/3;
+      const boxes = [
+        {label:'รายรับรวม', val:fmt(totalInc), color:[39,134,90]},
+        {label:'รายจ่ายรวม', val:fmt(totalExp), color:[192,57,43]},
+        {label:'กำไร / ขาดทุน', val:(profit>=0?'+':'')+fmt(profit), color:profit>=0?[39,134,90]:[192,57,43]},
+      ];
+      boxes.forEach((b,i)=>{
+        const bx = ml + i*(boxW+3);
+        doc.setFillColor(b.color[0], b.color[1], b.color[2], 0.1);
+        doc.roundedRect(bx, y, boxW, 14, 2, 2, 'F');
+        doc.setDrawColor(...b.color);
+        doc.roundedRect(bx, y, boxW, 14, 2, 2, 'S');
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(8);
+        doc.setTextColor(107,103,96);
+        doc.text(b.label, bx+3, y+5);
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(10);
+        doc.setTextColor(...b.color);
+        doc.text(b.val, bx+3, y+12);
+      });
+      y += 22;
+
+      // ─ Transactions Table ─
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(10);
+      doc.setTextColor(44,42,37);
+      doc.text('รายการทั้งหมด ('+txns.length+' รายการ)', ml, y);
+      y += 5;
+
+      // Table header
+      const cols = [5, 22, 16, 28, 60, 26, 25]; // widths
+      const hdrs = ['#','วันที่','ประเภท','หมวดหมู่','คำอธิบาย','จำนวนเงิน','Task'];
+      doc.setFillColor(240,237,230);
+      doc.rect(ml, y, tw, 7, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(107,103,96);
+      let cx = ml+1;
+      hdrs.forEach((h,i)=>{ doc.text(h, cx, y+5); cx+=cols[i]; });
+      y += 8;
+
+      // Table rows
+      txns.forEach((t,i)=>{
+        if(y > 260){ doc.addPage(); y=16; }
+        const isInc = t.type==='income';
+        const amt = (isInc?'+':'-')+fmt(t.amount);
+        const dt = t.date || '—';
+        // Row bg
+        if(i%2===0){ doc.setFillColor(250,249,246); doc.rect(ml,y-3,tw,7,'F'); }
+        doc.setFont('helvetica','normal'); doc.setFontSize(7);
+        doc.setTextColor(44,42,37);
+        const vals = [String(i+1), dt, isInc?'รายรับ':'รายจ่าย', t.cat||'', t.desc||'', amt, t.task||''];
+        cx = ml+1;
+        vals.forEach((v,ci)=>{
+          if(ci===5) doc.setTextColor(isInc?39:192, isInc?134:57, isInc?90:43);
+          else doc.setTextColor(44,42,37);
+          doc.text(v.substring(0,ci===4?38:18), cx, y+3);
+          cx+=cols[ci];
+        });
+        doc.setDrawColor(220,217,208);
+        doc.line(ml,y+4,ml+tw,y+4);
+        y += 7;
+      });
+
+      y += 8;
+      // ─ P&L Summary ─
+      if(y > 230){ doc.addPage(); y=16; }
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(44,42,37);
+      doc.text('P&L Summary', ml, y); y+=6;
+      const plRows = [
+        ['รวมรายรับ', fmt(totalInc), [39,134,90]],
+        ['รวมรายจ่าย', '-'+fmt(totalExp), [192,57,43]],
+        ['กำไรสุทธิ', (profit>=0?'+':'-')+fmt(Math.abs(profit)), profit>=0?[39,134,90]:[192,57,43]],
+        ['Gross Margin', margin.toFixed(1)+'%', profit>=0?[39,134,90]:[192,57,43]],
+      ];
+      plRows.forEach(([label,val,color])=>{
+        doc.setFont('helvetica','normal'); doc.setFontSize(9);
+        doc.setTextColor(107,103,96); doc.text(label, ml, y);
+        doc.setFont('helvetica','bold'); doc.setTextColor(...color);
+        doc.text(val, W-mr, y, {align:'right'});
+        y += 6;
+      });
+
+      // Footer
+      doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(158,154,146);
+      doc.text('SSV3D © 2026 | AI Construction PM Suite | '+c.flag+' '+c.code, W/2, 292, {align:'center'});
+
+      // Save
+      const today2=new Date();
+      const ds=today2.getDate()+'-'+(today2.getMonth()+1)+'-'+(today2.getFullYear()+543);
+      const fname = 'Accounting_'+(projName.replace(/\s+/g,'_'))+`_${ds}.pdf`;
+      const pdfBlob = doc.output('blob');
+      await saveFileWithPicker(pdfBlob, fname, 'รายงานการเงิน PDF');
+      pmToast('📄 Export PDF สำเร็จ','var(--blue)');
+    });
+  }finally{
+    if(overlay) setTimeout(()=>overlay.classList.remove('show'),600);
+  }
+}
+
+// ── Print P&L ─────────────────────────────────────────────────
+function acctPrint(){
+  window.print();
+}
+
+// ── Hook into switchTab ───────────────────────────────────────
+const _origSwitchTab = switchTab;
+function switchTab(t){
+  // Update tab buttons — all tabs in order
+  const tabNames = ['schedule','gantt','report','acct','renew'];
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    b.classList.toggle('active', tabNames[i]===t);
+  });
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const pg = document.getElementById('page-'+t);
+  if(pg) pg.classList.add('active');
+
+  if(t==='gantt'&&ST.startDate) renderGantt();
+  if(t==='renew') renderRenewStatus();
+  if(t==='acct'){
+    // Re-populate project sel with latest data
+    _dbGetAsync().then(db=>acctPopulateProjectSel(db));
+    acctInit();
+    // Update currency label
+    const c = getCurr();
+    const lbl = document.getElementById('acct-add-currency-lbl');
+    if(lbl) lbl.textContent = c.code;
+  }
+  // Auto-hide sidebar
+  const sb=document.getElementById('sidebar');
+  if(sb){
+    if(t==='report'||t==='renew'||t==='acct') sb.classList.add('hidden');
+    else sb.classList.remove('hidden');
+  }
+}
+
+// ── Sync: when a project is loaded, update acct proj sel ─────
+const _origPmLoad = pmLoad;
+function pmLoad(id){
+  _origPmLoad(id);
+  // If accounting tab is open, reload it
+  setTimeout(()=>{
+    if(document.getElementById('page-acct').classList.contains('active')){
+      document.getElementById('acct-proj-sel').value = id;
+      acctLoadProject(id);
+    }
+  }, 400);
+}
+
+
 
 <!-- ═══════════════════════════════════════════════════ -->
 <!-- CALENDAR DAY MODAL                                 -->
@@ -5159,6 +6191,225 @@ function toggleLang(){
 <!-- Notification toast for appointments -->
 <div id="appt-toast-container" style="position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;"></div>
 
+
+<!-- ===================== TAB 5: PROJECT ACCOUNTING (LT only) ===================== -->
+<div class="page" id="page-acct">
+
+  <!-- LT GATE (shown to non-LT users) -->
+  <div id="acct-lt-gate">
+    <div class="acct-gate-box">
+      <div class="acct-gate-icon">🔒</div>
+      <div class="acct-gate-title">Project Accounting — LT Only</div>
+      <div class="acct-gate-desc">
+        ฟีเจอร์ <strong>บัญชีโครงการก่อสร้าง</strong> สำหรับ<br>
+        <strong>License ตลอดชีพ (Lifetime)</strong> เท่านั้น<br><br>
+        • รายรับ-รายจ่ายต่อโปรเจกต์<br>
+        • สรุปกำไร / ขาดทุน P&L<br>
+        • Export PDF & Excel รายงาน<br><br>
+        <button class="btn accent" style="margin-top:4px" onclick="switchTab('renew')">♾️ อัปเกรด License ตลอดชีพ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT (LT users) -->
+  <div id="acct-main" style="display:none">
+
+    <!-- Project selector -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+      <div class="slabel" style="margin-bottom:0">📒 บัญชีโครงการ</div>
+      <select id="acct-proj-sel" class="acct-sel" onchange="acctLoadProject(this.value)" style="min-width:200px">
+        <option value="">— เลือกโปรเจกต์ —</option>
+      </select>
+      <span id="acct-proj-name-badge" style="font-size:11px;color:var(--text2)"></span>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn green" onclick="acctExportExcel()" id="btn-acct-excel" style="gap:5px">📥 Excel</button>
+        <button class="btn blue" onclick="acctExportPDF()" id="btn-acct-pdf" style="gap:5px">📄 PDF</button>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="acct-summary-row" id="acct-summary-row">
+      <div class="acct-sum-card inc">
+        <div class="acct-sum-lbl">💰 รายรับรวม</div>
+        <div class="acct-sum-val" id="acct-s-income">—</div>
+        <div class="acct-sum-sub" id="acct-s-income-cnt">0 รายการ</div>
+      </div>
+      <div class="acct-sum-card exp">
+        <div class="acct-sum-lbl">💸 รายจ่ายรวม</div>
+        <div class="acct-sum-val" id="acct-s-expense">—</div>
+        <div class="acct-sum-sub" id="acct-s-expense-cnt">0 รายการ</div>
+      </div>
+      <div class="acct-sum-card profit" id="acct-s-profit-card">
+        <div class="acct-sum-lbl">📊 กำไร / ขาดทุน</div>
+        <div class="acct-sum-val" id="acct-s-profit">—</div>
+        <div class="acct-sum-sub" id="acct-s-margin">Gross Margin: —</div>
+      </div>
+      <div class="acct-sum-card budget">
+        <div class="acct-sum-lbl">🗂️ งบประมาณ (Budget)</div>
+        <div class="acct-sum-val" id="acct-s-budget">—</div>
+        <div class="acct-sum-sub" id="acct-s-budget-used">ใช้ไปแล้ว —%</div>
+      </div>
+      <div class="acct-sum-card margin">
+        <div class="acct-sum-lbl">📈 Budget Variance</div>
+        <div class="acct-sum-val" id="acct-s-variance">—</div>
+        <div class="acct-sum-sub" id="acct-s-variance-lbl">vs งบประมาณ</div>
+      </div>
+    </div>
+
+    <!-- Add Transaction Panel -->
+    <div class="acct-add-panel">
+      <div class="acct-add-title">
+        <span>➕ เพิ่มรายการ</span>
+        <div class="acct-type-toggle">
+          <button class="acct-type-btn inc active" id="acct-add-type-inc" onclick="acctSetType('income')">💰 รายรับ</button>
+          <button class="acct-type-btn exp" id="acct-add-type-exp" onclick="acctSetType('expense')">💸 รายจ่าย</button>
+        </div>
+      </div>
+      <div class="acct-add-grid">
+        <div class="fg"><label style="font-size:10px;color:var(--text2)">วันที่</label>
+          <input type="date" id="acct-add-date" class="acct-inp"></div>
+        <div class="fg"><label style="font-size:10px;color:var(--text2)">หมวดหมู่</label>
+          <select id="acct-add-cat" class="acct-inp">
+            <option value="รายรับจากงาน">รายรับจากงาน</option>
+            <option value="เงินมัดจำ">เงินมัดจำ</option>
+            <option value="ค่างวด">ค่างวด</option>
+            <option value="ค่าวัสดุ">ค่าวัสดุ</option>
+            <option value="ค่าแรงงาน">ค่าแรงงาน</option>
+            <option value="ค่าเครื่องจักร">ค่าเครื่องจักร</option>
+            <option value="ค่าขนส่ง">ค่าขนส่ง</option>
+            <option value="ค่าออกแบบ/วิศวกร">ค่าออกแบบ/วิศวกร</option>
+            <option value="ค่าใช้จ่ายทั่วไป">ค่าใช้จ่ายทั่วไป</option>
+            <option value="อื่นๆ">อื่นๆ</option>
+          </select>
+        </div>
+        <div class="fg"><label style="font-size:10px;color:var(--text2)">คำอธิบาย</label>
+          <input id="acct-add-desc" class="acct-inp" placeholder="รายละเอียด..." onkeydown="if(event.key==='Enter')acctAddTxn()"></div>
+        <div class="fg"><label style="font-size:10px;color:var(--text2)">จำนวนเงิน (<span id="acct-add-currency-lbl">USD</span>)</label>
+          <input type="number" id="acct-add-amount" class="acct-inp acct-inp-money" placeholder="0.00" min="0" step="0.01" onkeydown="if(event.key==='Enter')acctAddTxn()"></div>
+        <div class="fg"><label style="font-size:10px;color:var(--text2)">เลขที่เอกสาร</label>
+          <input id="acct-add-docno" class="acct-inp" placeholder="INV-001 / หจก-..."></div>
+        <div class="fg"><label style="font-size:10px;color:var(--text2)">งาน (Task)</label>
+          <select id="acct-add-task" class="acct-inp">
+            <option value="">— ทั่วไป —</option>
+          </select>
+        </div>
+        <button class="btn accent" onclick="acctAddTxn()" style="margin-top:21px;white-space:nowrap;height:36px">+ เพิ่ม</button>
+      </div>
+    </div>
+
+    <!-- Filter Toolbar -->
+    <div class="acct-toolbar">
+      <div class="slabel" style="margin-bottom:0">📋 รายการทั้งหมด</div>
+      <div class="acct-filter-row">
+        <select id="acct-filter-type" class="acct-sel" onchange="acctRenderTxns()">
+          <option value="all">ทั้งหมด</option>
+          <option value="income">รายรับ</option>
+          <option value="expense">รายจ่าย</option>
+        </select>
+        <select id="acct-filter-cat" class="acct-sel" onchange="acctRenderTxns()">
+          <option value="all">ทุกหมวด</option>
+        </select>
+        <select id="acct-filter-task" class="acct-sel" onchange="acctRenderTxns()">
+          <option value="all">ทุก Task</option>
+        </select>
+        <input type="month" id="acct-filter-month" class="acct-sel" onchange="acctRenderTxns()" title="กรองตามเดือน">
+        <button class="btn" onclick="acctClearFilters()" style="font-size:11px;padding:7px 12px">✕ ล้าง</button>
+      </div>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="acct-table-wrap" id="acct-table-wrap">
+      <table class="acct-tbl" id="acct-tbl">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th style="width:90px">วันที่</th>
+            <th style="width:70px">ประเภท</th>
+            <th>หมวดหมู่</th>
+            <th>คำอธิบาย</th>
+            <th style="text-align:right">จำนวนเงิน</th>
+            <th>เลขที่เอกสาร</th>
+            <th>งาน</th>
+            <th style="width:60px"></th>
+          </tr>
+        </thead>
+        <tbody id="acct-txn-body">
+          <tr><td colspan="9"><div class="acct-empty">ยังไม่มีรายการ<br>เลือกโปรเจกต์และเพิ่มรายการได้เลยครับ</div></td></tr>
+        </tbody>
+        <tfoot id="acct-txn-foot"></tfoot>
+      </table>
+    </div>
+
+    <!-- P&L Section -->
+    <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:16px;margin-bottom:20px">
+
+      <!-- Monthly Bar Chart (simple) -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📊 รายรับ/รายจ่ายรายเดือน</div>
+        </div>
+        <div class="card-body" style="padding:12px 16px">
+          <div id="acct-monthly-chart" style="display:flex;gap:3px;align-items:flex-end;height:100px;margin-bottom:8px"></div>
+          <div style="display:flex;gap:12px;font-size:10px;color:var(--text2)">
+            <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:var(--green);border-radius:2px;display:inline-block"></span>รายรับ</span>
+            <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:var(--red);border-radius:2px;display:inline-block"></span>รายจ่าย</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- P&L Summary Table -->
+      <div class="card acct-pl-wrap">
+        <div class="card-header">
+          <div class="card-title">📑 สรุปกำไร-ขาดทุน (P&L Statement)</div>
+        </div>
+        <div class="card-body" style="padding:0">
+          <table class="acct-pl-table" id="acct-pl-table" style="width:100%">
+            <thead>
+              <tr>
+                <th style="text-align:left">รายการ</th>
+                <th style="text-align:right;padding-right:16px">จำนวนเงิน</th>
+              </tr>
+            </thead>
+            <tbody id="acct-pl-body">
+              <tr><td colspan="2" style="text-align:center;padding:20px;color:var(--text3);font-size:12px">เลือกโปรเจกต์เพื่อดู P&L</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- By-Task breakdown -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-header">
+        <div class="card-title">📋 รายจ่ายตาม Task</div>
+        <span style="font-size:11px;color:var(--text3)">เปรียบเทียบจริง vs งบประมาณ</span>
+      </div>
+      <div class="card-body" style="padding:0">
+        <table class="acct-tbl" id="acct-task-breakdown">
+          <thead>
+            <tr>
+              <th>Task</th>
+              <th style="text-align:right">งบประมาณ</th>
+              <th style="text-align:right">จ่ายจริง</th>
+              <th style="text-align:right">ส่วนต่าง</th>
+              <th style="width:120px">%ใช้งบ</th>
+            </tr>
+          </thead>
+          <tbody id="acct-task-body">
+            <tr><td colspan="5"><div class="acct-empty">ยังไม่มีข้อมูล</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="export-row">
+      <button class="btn" onclick="acctPrint()">🖨️ Print P&L</button>
+      <button class="btn green" onclick="acctExportExcel()">📥 Export Excel</button>
+      <button class="btn blue" onclick="acctExportPDF()">📄 Export PDF</button>
+    </div>
+
+  </div><!-- /acct-main -->
+</div>
 
 <!-- ===================== TAB 4: RENEW LICENSE ===================== -->
 <div class="page" id="page-renew">
