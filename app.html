@@ -3534,17 +3534,14 @@ const _PL = 'aipm7_last';
 // ถ้าอยู่ใน Electron ใช้ IPC เขียน/อ่านไฟล์ — ข้อมูลไม่หายเมื่อล้าง cache
 // ถ้าอยู่ใน browser ปกติ fallback ไป localStorage
 
-// ── File-based DB (Electron via preload contextBridge) ────────────────
-// window.electronAPI ถูก expose โดย preload.js ผ่าน contextBridge
-// ถ้าไม่มี (browser ปกติ) → fallback ไป localStorage
-
-const _isElectron = !!(window.electronAPI);
+const _isElectron = !!(window && window.require);
 
 // Async wrappers
 async function _dbGetAsync(){
   if(_isElectron){
     try{
-      const raw = await window.electronAPI.dbRead();
+      const ipc = window.require('electron').ipcRenderer;
+      const raw = await ipc.invoke('db-read');
       return JSON.parse(raw||'{}');
     }catch(e){}
   }
@@ -3555,7 +3552,8 @@ async function _dbSetAsync(d){
   const str = JSON.stringify(d);
   if(_isElectron){
     try{
-      await window.electronAPI.dbWrite(str);
+      const ipc = window.require('electron').ipcRenderer;
+      await ipc.invoke('db-write', str);
       return;
     }catch(e){}
   }
@@ -3564,19 +3562,26 @@ async function _dbSetAsync(d){
 
 async function _dbReadLastAsync(){
   if(_isElectron){
-    try{ return await window.electronAPI.dbReadLast(); }catch(e){}
+    try{
+      const ipc = window.require('electron').ipcRenderer;
+      return await ipc.invoke('db-read-last');
+    }catch(e){}
   }
   try{ return localStorage.getItem(_PL)||''; }catch(e){ return ''; }
 }
 
 async function _dbWriteLastAsync(id){
   if(_isElectron){
-    try{ await window.electronAPI.dbWriteLast(id); return; }catch(e){}
+    try{
+      const ipc = window.require('electron').ipcRenderer;
+      await ipc.invoke('db-write-last', id);
+      return;
+    }catch(e){}
   }
   try{ localStorage.setItem(_PL, id); }catch(e){}
 }
 
-// Sync fallback
+// Sync fallback (ยังใช้ได้สำหรับ call ที่ไม่ได้ await)
 function _dbGet(){ try{ return JSON.parse(localStorage.getItem(_PM)||'{}'); }catch(e){ return {}; } }
 function _dbSet(d){ try{ localStorage.setItem(_PM, JSON.stringify(d)); }catch(e){} }
 
@@ -3584,16 +3589,18 @@ function _dbSet(d){ try{ localStorage.setItem(_PM, JSON.stringify(d)); }catch(e)
 async function _migrateToFile(){
   if(!_isElectron) return;
   try{
-    const fileRaw = await window.electronAPI.dbRead();
+    const ipc = window.require('electron').ipcRenderer;
+    const fileRaw = await ipc.invoke('db-read');
     const fileData = JSON.parse(fileRaw||'{}');
+    // ถ้าไฟล์ว่าง แต่ localStorage มีข้อมูล — migrate
     if(Object.keys(fileData).length === 0){
       const lsRaw = localStorage.getItem(_PM)||'{}';
       const lsData = JSON.parse(lsRaw);
       if(Object.keys(lsData).length > 0){
-        await window.electronAPI.dbWrite(lsRaw);
+        await ipc.invoke('db-write', lsRaw);
         const lastId = localStorage.getItem(_PL)||'';
-        if(lastId) await window.electronAPI.dbWriteLast(lastId);
-        console.log('[PM] Migrated', Object.keys(lsData).length, 'projects to file');
+        if(lastId) await ipc.invoke('db-write-last', lastId);
+        console.log('[PM] Migrated', Object.keys(lsData).length, 'projects from localStorage to file');
       }
     }
   }catch(e){ console.log('[PM] Migration skipped:', e.message); }
@@ -3601,18 +3608,33 @@ async function _migrateToFile(){
 let _curId = null;
 
 // ════════════════════════════════════════════════════════════
-// UPDATE BUTTON — ใช้ window.electronAPI (contextBridge)
+// UPDATE BUTTON
+// Strategy: fetch() GitHub (CORS *) → ถ้ามี version ใหม่
+// → เขียน HTML ใหม่ลง sessionStorage → document.open/write
+// ไม่ต้องพึ่ง IPC หรือ window.require เลย
 // ════════════════════════════════════════════════════════════
+const _GH_VER_URL  = 'https://raw.githubusercontent.com/llollaalloll/pm-suite-updates/main/version.json';
+const _GH_HTML_URL = 'https://raw.githubusercontent.com/llollaalloll/pm-suite-updates/main/app.html';
+
+// ── เช็คและ apply pending update (ถ้ามี) ทันทีที่โหลดหน้า ──
+(function _applyPendingUpdate(){
+  try{
+    const pending = sessionStorage.getItem('__pm_pending_html');
+    if(pending){
+      sessionStorage.removeItem('__pm_pending_html');
+      // รอ DOM พร้อมแล้วค่อย write (ตอนนี้ยังอยู่ใน script block)
+      document.addEventListener('DOMContentLoaded', function(){
+        // ไม่ทำอะไร — ใช้ inject แทน (ด้านล่าง)
+      });
+    }
+  }catch(e){}
+})();
+
 async function triggerCheckUpdate() {
   const btn   = document.getElementById('update-btn');
   const icon  = document.getElementById('update-btn-icon');
   const label = document.getElementById('update-btn-label');
   if (!btn) return;
-
-  if (!window.electronAPI) {
-    pmToast('⚠️ ใช้ได้เฉพาะใน Electron app เท่านั้น', 'var(--red)');
-    return;
-  }
 
   // Loading state
   btn.disabled = true;
@@ -3622,15 +3644,73 @@ async function triggerCheckUpdate() {
   if (label) label.textContent = 'กำลังตรวจสอบ...';
 
   try {
-    await window.electronAPI.checkUpdate(); // main.js จัดการ dialog + download เอง
+    // Step 1: ดึง version.json
+    const vRes = await fetch(_GH_VER_URL + '?_=' + Date.now());
+    if (!vRes.ok) throw new Error('GitHub ไม่ตอบสนอง (HTTP ' + vRes.status + ')');
+    const info = await vRes.json();
+    const remoteVer  = (info.version || '').trim();
+    const notes      = info.notes || '';
+
+    // Step 2: หา version ปัจจุบัน
+    const currentVer = (
+      window.__APP_VERSION ||
+      (document.getElementById('app-version-badge') || {}).textContent ||
+      ''
+    ).replace('v','').trim();
+
+    pmToast('🔍 ตรวจสอบ: ปัจจุบัน v' + currentVer + ' → GitHub v' + remoteVer, 'var(--blue)');
+
+    if (!remoteVer || remoteVer === currentVer) {
+      setTimeout(() => pmToast('✅ v' + currentVer + ' เป็นเวอร์ชันล่าสุดแล้ว', 'var(--green)'), 1500);
+      return;
+    }
+
+    // Step 3: พบ version ใหม่
+    const ok = confirm(
+      '🚀 พบเวอร์ชันใหม่!\n\n' +
+      'ปัจจุบัน : v' + currentVer + '\n' +
+      'ใหม่      : v' + remoteVer + '\n' +
+      (notes ? '\n📋 ' + notes + '\n' : '') +
+      '\nดาวน์โหลดและโหลดใหม่เดี๋ยวนี้ไหม?'
+    );
+    if (!ok) { pmToast('⏭️ ข้าม v' + remoteVer, 'var(--text2)'); return; }
+
+    // Step 4: Download
+    if (icon)  icon.textContent  = '⬇️';
+    if (label) label.textContent = 'กำลัง Download...';
+    pmToast('⬇️ กำลังดาวน์โหลด v' + remoteVer + '...', 'var(--accent)');
+
+    const hRes = await fetch(_GH_HTML_URL + '?_=' + Date.now());
+    if (!hRes.ok) throw new Error('ดาวน์โหลดล้มเหลว (HTTP ' + hRes.status + ')');
+    const newHtml = await hRes.text();
+
+    // Step 5: inject HTML ใหม่เข้า document โดยตรง (ไม่ใช้ blob URL)
+    pmToast('✅ v' + remoteVer + ' พร้อมแล้ว — กำลังโหลดใหม่...', 'var(--green)');
+    setTimeout(function() {
+      try {
+        document.open('text/html', 'replace');
+        document.write(newHtml);
+        document.close();
+      } catch(e2) {
+        // Fallback: เปิด window ใหม่
+        const w = window.open('', '_self');
+        w.document.open();
+        w.document.write(newHtml);
+        w.document.close();
+      }
+    }, 800);
+
   } catch(e) {
-    pmToast('❌ ตรวจสอบไม่ได้: ' + e.message, 'var(--red)');
+    pmToast('❌ ' + e.message, 'var(--red)');
   } finally {
-    btn.disabled = false;
-    btn.style.borderColor = 'var(--border2)';
-    btn.style.color = 'var(--text2)';
-    if (icon)  icon.textContent  = '🔄';
-    if (label) label.textContent = 'อัปเดต';
+    // คืน state ปุ่ม (ถ้ายังอยู่ใน DOM)
+    try {
+      btn.disabled = false;
+      btn.style.borderColor = 'var(--border2)';
+      btn.style.color = 'var(--text2)';
+      if (icon)  icon.textContent  = '🔄';
+      if (label) label.textContent = 'อัปเดต';
+    } catch(e) {}
   }
 }
 
@@ -5383,8 +5463,11 @@ function toggleLang(){
     document.title='AI Construction PM v'+v;
     window.__APP_VERSION=v;
   }
-  if(window.electronAPI){
-    window.electronAPI.getVersion().then(function(v){if(v)applyVersion(v);}).catch(function(){});
+  if(window.require){
+    try{
+      var ipc=window.require('electron').ipcRenderer;
+      ipc.invoke('get-version').then(function(v){if(v)applyVersion(v);}).catch(function(){});
+    }catch(e){}
   }
 })();
 </script>
