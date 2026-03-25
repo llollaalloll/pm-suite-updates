@@ -581,6 +581,67 @@ body { overflow: hidden; }
 #lic-footer a{color:#C47F00;}
 @keyframes lic-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 .lic-shake{animation:lic-shake 0.4s ease;}
+/* ═══════ PROJECT ACCOUNTING MODULE ═══════ */
+#acct-lt-gate{display:none;flex-direction:column;align-items:center;justify-content:center;height:calc(100vh - 220px);gap:18px;}
+#acct-lt-gate.show{display:flex;}
+.acct-gate-box{background:var(--bg2);border:2px solid var(--accent);border-radius:14px;padding:32px 40px;text-align:center;max-width:460px;box-shadow:0 12px 40px rgba(196,127,0,0.15);}
+.acct-gate-icon{font-size:44px;margin-bottom:12px;}
+.acct-gate-title{font-size:18px;font-weight:700;color:var(--accent);margin-bottom:8px;}
+.acct-gate-desc{font-size:13px;color:var(--text2);line-height:1.7;}
+.acct-summary-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;}
+.acct-sum-card{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:13px 15px;}
+.acct-sum-card.inc{border-color:rgba(39,134,90,0.4);}
+.acct-sum-card.exp{border-color:rgba(192,57,43,0.4);}
+.acct-sum-card.profit.pos{border-color:rgba(39,134,90,0.6);background:rgba(39,134,90,0.05);}
+.acct-sum-card.profit.neg{border-color:rgba(192,57,43,0.6);background:rgba(192,57,43,0.05);}
+.acct-sum-card.budget{border-color:rgba(196,127,0,0.4);}
+.acct-sum-card.margin{border-color:rgba(109,79,194,0.4);}
+.acct-sum-lbl{font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.acct-sum-val{font-size:20px;font-weight:700;font-family:'IBM Plex Mono',monospace;}
+.acct-sum-card.inc .acct-sum-val{color:var(--green);}
+.acct-sum-card.exp .acct-sum-val{color:var(--red);}
+.acct-sum-card.profit.pos .acct-sum-val{color:var(--green);}
+.acct-sum-card.profit.neg .acct-sum-val{color:var(--red);}
+.acct-sum-card.budget .acct-sum-val{color:var(--accent);}
+.acct-sum-card.margin .acct-sum-val{color:var(--purple);}
+.acct-sum-sub{font-size:10px;color:var(--text3);margin-top:2px;}
+.acct-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
+.acct-filter-row{display:flex;gap:8px;align-items:center;margin-left:auto;flex-wrap:wrap;}
+.acct-sel{background:var(--bg2);border:1px solid var(--border2);color:var(--text);font-family:inherit;font-size:12px;padding:7px 10px;border-radius:6px;outline:none;}
+.acct-sel:focus{border-color:var(--accent);}
+.acct-table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px;}
+.acct-tbl{width:100%;border-collapse:collapse;}
+.acct-tbl th{background:var(--bg3);font-size:9px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;padding:8px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+.acct-tbl td{padding:9px 14px;font-size:12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.acct-tbl tr:last-child td{border-bottom:none;}
+.acct-tbl tr:hover td{background:rgba(255,255,255,0.015);}
+.acct-tbl .acct-amt-inc{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--green);}
+.acct-tbl .acct-amt-exp{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--red);}
+.acct-cat-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;display:inline-block;white-space:nowrap;}
+.acct-cat-badge.income{background:var(--green-soft);color:var(--green);}
+.acct-cat-badge.expense{background:var(--red-soft);color:var(--red);}
+.acct-empty{text-align:center;padding:40px;color:var(--text3);font-size:13px;line-height:2;}
+.acct-add-panel{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:16px 18px;margin-bottom:18px;}
+.acct-add-grid{display:grid;grid-template-columns:1fr 1fr 1.2fr 0.8fr 1fr 1fr auto;gap:9px;align-items:end;}
+.acct-inp{background:var(--bg3);border:1px solid var(--border2);color:var(--text);font-family:inherit;font-size:12px;padding:8px 11px;border-radius:6px;outline:none;width:100%;transition:border-color .2s;}
+.acct-inp:focus{border-color:var(--accent);}
+.acct-type-toggle{display:flex;border:1px solid var(--border2);border-radius:6px;overflow:hidden;height:36px;flex-shrink:0;}
+.acct-type-btn{flex:1;border:none;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;padding:0 10px;white-space:nowrap;}
+.acct-type-btn.inc{background:var(--bg3);color:var(--text3);}
+.acct-type-btn.inc.active{background:var(--green);color:#fff;}
+.acct-type-btn.exp{background:var(--bg3);color:var(--text3);}
+.acct-type-btn.exp.active{background:var(--red);color:#fff;}
+.acct-pl-table{width:100%;border-collapse:collapse;}
+.acct-pl-table th{background:var(--bg3);font-size:9px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;padding:8px 14px;border-bottom:1px solid var(--border);}
+.acct-pl-table td{padding:8px 14px;font-size:12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.acct-pl-table tr.section-hdr td{background:var(--bg3);font-weight:700;font-size:11px;color:var(--text);padding:9px 14px;}
+.acct-pl-table tr.total-row td{background:var(--accent-soft);font-weight:700;font-size:13px;border-top:2px solid var(--accent);}
+.acct-pl-table tr.subtotal td{background:rgba(255,255,255,0.01);font-weight:600;border-top:1px solid var(--border2);}
+.acct-pl-amt{font-family:'IBM Plex Mono',monospace;text-align:right;}
+.acct-pl-amt.pos{color:var(--green);}
+.acct-pl-amt.neg{color:var(--red);}
+.acct-pl-amt.acc{color:var(--accent);}
+
 </style>
 </head>
 <body>
@@ -650,6 +711,7 @@ body { overflow: hidden; }
   <button class="tab-btn active" onclick="switchTab('schedule')" data-i18n="tab_schedule">📅 Schedule Builder</button>
   <button class="tab-btn" onclick="switchTab('gantt')" data-i18n="tab_gantt">📊 Gantt Chart</button>
   <button class="tab-btn" onclick="switchTab('report')" data-i18n="tab_report">🤖 AI Report Generator</button>
+  <button class="tab-btn" onclick="switchTab('acct')" id="tab-btn-acct" style="color:var(--green)">📒 บัญชีโครงการ <span style="font-size:9px;background:rgba(39,134,90,0.15);border:1px solid rgba(39,134,90,0.4);color:var(--green);padding:1px 5px;border-radius:8px;margin-left:3px">LT</span></button>
   <button class="tab-btn" onclick="switchTab('renew')" style="color:#C47F00;margin-left:auto" data-i18n="tab_renew">🔄 ต่ออายุ License</button>
 </div>
 
@@ -1310,16 +1372,16 @@ const DEF_TASKS=[
 // ============================================================
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
-    b.classList.toggle('active',['schedule','gantt','report','renew'][i]===t);
+    b.classList.toggle('active',['schedule','gantt','report','acct','renew'][i]===t);
   });
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+t).classList.add('active');
   if(t==='gantt'&&ST.startDate)renderGantt();
   if(t==='renew') renderRenewStatus();
-  // Auto-hide sidebar on report/renew tab for more space
+  if(t==='acct'){ acctInit(); _dbGetAsync().then(db=>acctPopulateProjectSel(db)); if(_curId){ const s=document.getElementById('acct-proj-sel'); if(s){ s.value=_curId; acctLoadProject(_curId); } } }
   const sb=document.getElementById('sidebar');
   if(sb){
-    if(t==='report'||t==='renew') sb.classList.add('hidden');
+    if(t==='report'||t==='renew'||t==='acct') sb.classList.add('hidden');
     else sb.classList.remove('hidden');
   }
 }
@@ -3599,40 +3661,6 @@ async function _migrateToFile(){
   }catch(e){ console.log('[PM] Migration skipped:', e.message); }
 }
 let _curId = null;
-// ════════════════════════════════════════════════════════════
-// UPDATE BUTTON — ใช้ window.electronAPI (contextBridge + preload.js)
-// ════════════════════════════════════════════════════════════
-async function triggerCheckUpdate() {
-  const btn   = document.getElementById('update-btn');
-  const icon  = document.getElementById('update-btn-icon');
-  const label = document.getElementById('update-btn-label');
-  if (!btn) return;
-
-  if (!window.electronAPI) {
-    pmToast('⚠️ ฟีเจอร์นี้ใช้ได้เฉพาะใน Electron app (ต้อง build exe ใหม่)', 'var(--red)');
-    return;
-  }
-
-  btn.disabled = true;
-  btn.style.borderColor = 'var(--accent)';
-  btn.style.color = 'var(--accent)';
-  if (icon)  icon.textContent  = '⏳';
-  if (label) label.textContent = 'กำลังตรวจสอบ...';
-
-  try {
-    await window.electronAPI.checkUpdate(); // main.js จัดการ dialog + download ทั้งหมด
-  } catch(e) {
-    pmToast('❌ ตรวจสอบไม่ได้: ' + e.message, 'var(--red)');
-  } finally {
-    btn.disabled = false;
-    btn.style.borderColor = 'var(--border2)';
-    btn.style.color = 'var(--text2)';
-    if (icon)  icon.textContent  = '🔄';
-    if (label) label.textContent = 'อัปเดต';
-  }
-}
-
-
 
 function _dbGet(){ try{ return JSON.parse(localStorage.getItem(_PM)||'{}'); }catch(e){ return {}; } }
 function _dbSet(d){ try{ localStorage.setItem(_PM, JSON.stringify(d)); }catch(e){ alert('Storage เต็มครับ'); } }
@@ -5101,6 +5129,203 @@ function toggleLang(){
   }catch(e){}
 })();
 
+// ════════════════════════ UPDATE BUTTON ════════════════════════
+async function triggerCheckUpdate() {
+  const btn=document.getElementById('update-btn'),icon=document.getElementById('update-btn-icon'),label=document.getElementById('update-btn-label');
+  if(!btn) return;
+  if(!window.electronAPI){pmToast('ใช้ได้เฉพาะใน Electron app เท่านั้น','var(--red)');return;}
+  btn.disabled=true;btn.style.borderColor='var(--accent)';btn.style.color='var(--accent)';
+  if(icon)icon.textContent='⏳';if(label)label.textContent='กำลังตรวจสอบ...';
+  try{await window.electronAPI.checkUpdate();}
+  catch(e){pmToast('ตรวจสอบไม่ได้: '+e.message,'var(--red)');}
+  finally{btn.disabled=false;btn.style.borderColor='var(--border2)';btn.style.color='var(--text2)';if(icon)icon.textContent='🔄';if(label)label.textContent='อัปเดต';}
+}
+
+// ════════════════════════ ACCOUNTING MODULE ════════════════════════
+const _ACCT_STORE='aipm7_acct';
+let _acctProjId=null,_acctType='income';
+function _acctDB(){try{return JSON.parse(localStorage.getItem(_ACCT_STORE)||'{}');}catch(e){return{};}}
+function _acctSave(db){try{localStorage.setItem(_ACCT_STORE,JSON.stringify(db));}catch(e){}}
+function _acctGetProj(id){const db=_acctDB();if(!db[id])db[id]={txns:[],notes:''};return db[id];}
+function _acctTxnId(){return 'tx'+Date.now()+Math.random().toString(36).slice(2,6);}
+function acctFmt(n){if(n===null||n===undefined)return '—';const c=getCurr();return c.sym+' '+Math.abs(toDisplay(n)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function _acctIsLT(){try{const s=localStorage.getItem(_LIC_STORE);if(!s)return false;return JSON.parse(s).type==='LT';}catch(e){return false;}}
+function acctInit(){
+  const isLT=_acctIsLT();
+  document.getElementById('acct-lt-gate').classList.toggle('show',!isLT);
+  document.getElementById('acct-main').style.display=isLT?'block':'none';
+  if(!isLT)return;
+  const today=new Date();
+  const v=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  const de=document.getElementById('acct-add-date');if(de&&!de.value)de.value=v;
+  const lbl=document.getElementById('acct-add-currency-lbl');if(lbl)lbl.textContent=getCurr().code;
+}
+function acctPopulateProjectSel(db){
+  const sel=document.getElementById('acct-proj-sel');if(!sel)return;
+  const cv=sel.value;
+  sel.innerHTML='<option value="">— เลือกโปรเจกต์ —</option>';
+  Object.keys(db).filter(k=>k!=='__acct__').sort((a,b)=>new Date(db[b].savedAt)-new Date(db[a].savedAt)).forEach(id=>{
+    const p=db[id];const opt=document.createElement('option');opt.value=id;opt.textContent=p.name||'ไม่มีชื่อ';sel.appendChild(opt);
+  });
+  if(cv)sel.value=cv;
+}
+function acctLoadProject(id){
+  _acctProjId=id||null;
+  if(!id){const b=document.getElementById('acct-proj-name-badge');if(b)b.textContent='';acctClearDisplay();return;}
+  _dbGetAsync().then(db=>{
+    const p=db[id];const badge=document.getElementById('acct-proj-name-badge');if(badge)badge.textContent='— '+(p?p.name:id);
+    const ts=document.getElementById('acct-add-task'),tf=document.getElementById('acct-filter-task');
+    if(ts&&p&&p.state&&p.state.tasks){
+      ts.innerHTML='<option value="">— ทั่วไป —</option>';tf.innerHTML='<option value="all">ทุก Task</option>';
+      p.state.tasks.forEach(t=>{const o1=document.createElement('option');o1.value=t.name;o1.textContent=t.name;ts.appendChild(o1);const o2=document.createElement('option');o2.value=t.name;o2.textContent=t.name;tf.appendChild(o2);});
+    }
+    let bgt=0;if(p&&p.state&&p.state.tasks)p.state.tasks.forEach(t=>{if(t.subtasks&&t.subtasks.length>0)t.subtasks.forEach(s=>{bgt+=(s.budgetMat||0)+(s.budgetLab||0);});else bgt+=(t.budgetMat||0)+(t.budgetLab||0);});
+    acctRenderAll(id,bgt,p);
+  });
+}
+function acctClearDisplay(){['acct-s-income','acct-s-expense','acct-s-profit','acct-s-budget','acct-s-variance'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent='—';});const b=document.getElementById('acct-txn-body');if(b)b.innerHTML='<tr><td colspan="9"><div class="acct-empty">เลือกโปรเจกต์</div></td></tr>';}
+function acctSetType(type){
+  _acctType=type;
+  document.getElementById('acct-add-type-inc').classList.toggle('active',type==='income');
+  document.getElementById('acct-add-type-exp').classList.toggle('active',type==='expense');
+  const cs=document.getElementById('acct-add-cat');if(!cs)return;
+  cs.innerHTML=(type==='income'?['รายรับจากงาน','เงินมัดจำ','ค่างวด','Bonus / Variation Order','รายรับอื่นๆ']:['ค่าวัสดุ','ค่าแรงงาน','ค่าเครื่องจักร','ค่าขนส่ง','ค่าออกแบบ/วิศวกร','ค่าสาธารณูปโภค','ค่าเช่า/อุปกรณ์','ค่าใช้จ่ายทั่วไป','ภาษี/ค่าธรรมเนียม','อื่นๆ']).map(c=>'<option value="'+c+'">'+c+'</option>').join('');
+}
+function acctAddTxn(){
+  if(!_acctProjId){pmToast('กรุณาเลือกโปรเจกต์','var(--red)');return;}
+  const date=document.getElementById('acct-add-date').value;
+  const cat=document.getElementById('acct-add-cat').value;
+  const desc=document.getElementById('acct-add-desc').value.trim();
+  const amtRaw=parseFloat(document.getElementById('acct-add-amount').value);
+  const docno=document.getElementById('acct-add-docno').value.trim();
+  const task=document.getElementById('acct-add-task').value;
+  if(!date){pmToast('กรุณาเลือกวันที่','var(--red)');return;}
+  if(!desc){pmToast('กรุณากรอกคำอธิบาย','var(--red)');return;}
+  if(!amtRaw||amtRaw<=0){pmToast('กรุณากรอกจำนวนเงิน','var(--red)');return;}
+  const amtBase=toBase(amtRaw);
+  const txn={id:_acctTxnId(),date,type:_acctType,cat,desc,amount:amtBase,docno,task,createdAt:new Date().toISOString()};
+  const db=_acctDB();if(!db[_acctProjId])db[_acctProjId]={txns:[],notes:''};db[_acctProjId].txns.push(txn);_acctSave(db);
+  document.getElementById('acct-add-desc').value='';document.getElementById('acct-add-amount').value='';document.getElementById('acct-add-docno').value='';
+  acctLoadProject(_acctProjId);
+  pmToast((_acctType==='income'?'รายรับ':'รายจ่าย')+': '+desc+' — '+acctFmt(amtBase),_acctType==='income'?'var(--green)':'var(--red)');
+}
+function acctDelTxn(txnId){if(!_acctProjId||!confirm('ลบรายการนี้?'))return;const db=_acctDB();if(db[_acctProjId])db[_acctProjId].txns=(db[_acctProjId].txns||[]).filter(t=>t.id!==txnId);_acctSave(db);acctLoadProject(_acctProjId);pmToast('ลบรายการแล้ว','var(--red)');}
+function acctClearFilters(){['acct-filter-type','acct-filter-cat','acct-filter-task'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=id==='acct-filter-type'?'all':id==='acct-filter-cat'?'all':'all';});const m=document.getElementById('acct-filter-month');if(m)m.value='';acctRenderTxns();}
+function acctRenderAll(projId,projBudget,projData){
+  const data=_acctGetProj(projId);const txns=data.txns||[];
+  const totalInc=txns.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const totalExp=txns.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const profit=totalInc-totalExp;const margin=totalInc>0?(profit/totalInc*100):0;
+  const variance=projBudget-totalExp;const c=getCurr();
+  const se=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  se('acct-s-income',acctFmt(totalInc));se('acct-s-income-cnt',txns.filter(t=>t.type==='income').length+' รายการ');
+  se('acct-s-expense',acctFmt(totalExp));se('acct-s-expense-cnt',txns.filter(t=>t.type==='expense').length+' รายการ');
+  const pe=document.getElementById('acct-s-profit');if(pe){pe.textContent=(profit>=0?'+ ':'- ')+c.sym+' '+toDisplay(Math.abs(profit)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});pe.style.color=profit>=0?'var(--green)':'var(--red)';}
+  se('acct-s-margin','Gross Margin: '+margin.toFixed(1)+'%');
+  se('acct-s-budget',projBudget>0?acctFmt(projBudget):'—');se('acct-s-budget-used',projBudget>0?'ใช้ไปแล้ว '+(projBudget>0?(totalExp/projBudget*100).toFixed(1):0)+'%':'ไม่มีงบประมาณ');
+  const ve=document.getElementById('acct-s-variance');if(ve){ve.textContent=(projBudget>0?(variance>=0?'+ ':'- ')+c.sym+' '+toDisplay(Math.abs(variance)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'—');ve.style.color=variance>=0?'var(--green)':'var(--red)';}
+  se('acct-s-variance-lbl',projBudget>0?(variance>=0?'ประหยัดงบ':'เกินงบ'):'vs งบประมาณ');
+  const pc=document.getElementById('acct-s-profit-card');if(pc){pc.classList.remove('pos','neg');pc.classList.add(profit>=0?'pos':'neg');}
+  const cats=[...new Set(txns.map(t=>t.cat))];const cf=document.getElementById('acct-filter-cat');
+  if(cf){const cv=cf.value;cf.innerHTML='<option value="all">ทุกหมวด</option>';cats.forEach(cat=>{const o=document.createElement('option');o.value=cat;o.textContent=cat;cf.appendChild(o);});if(cv)cf.value=cv;}
+  acctRenderTxns(txns);acctRenderPL(txns,totalInc,totalExp,profit,projBudget,margin);acctRenderMonthlyChart(txns);acctRenderTaskBreakdown(txns,projData);
+}
+function acctRenderTxns(rawTxns){
+  if(!_acctProjId)return;
+  const data=_acctGetProj(_acctProjId);let txns=rawTxns||data.txns||[];
+  const fT=document.getElementById('acct-filter-type')?.value||'all';
+  const fC=document.getElementById('acct-filter-cat')?.value||'all';
+  const fK=document.getElementById('acct-filter-task')?.value||'all';
+  const fM=document.getElementById('acct-filter-month')?.value||'';
+  if(fT!=='all')txns=txns.filter(t=>t.type===fT);if(fC!=='all')txns=txns.filter(t=>t.cat===fC);if(fK!=='all')txns=txns.filter(t=>t.task===fK);if(fM)txns=txns.filter(t=>t.date&&t.date.startsWith(fM));
+  txns=[...txns].sort((a,b)=>b.date.localeCompare(a.date));
+  const body=document.getElementById('acct-txn-body');const foot=document.getElementById('acct-txn-foot');if(!body)return;
+  if(!txns.length){body.innerHTML='<tr><td colspan="9"><div class="acct-empty">ไม่พบรายการ</div></td></tr>';if(foot)foot.innerHTML='';return;}
+  const c=getCurr();let tI=0,tE=0;
+  body.innerHTML=txns.map((t,i)=>{const isInc=t.type==='income';if(isInc)tI+=t.amount;else tE+=t.amount;
+    const dt=t.date?(()=>{const d=new Date(t.date);return d.getDate()+'/'+(d.getMonth()+1)+'/'+(d.getFullYear()+543);})():'—';
+    const aH=isInc?'<td class="acct-amt-inc" style="text-align:right">+'+acctFmt(t.amount)+'</td>':'<td class="acct-amt-exp" style="text-align:right">−'+acctFmt(t.amount)+'</td>';
+    return '<tr><td style="color:var(--text3);font-size:10px;font-family:IBM Plex Mono,monospace">'+(i+1)+'</td><td style="font-size:11px;color:var(--text2)">'+dt+'</td><td><span class="acct-cat-badge '+t.type+'">'+(isInc?'รับ':'จ่าย')+'</span></td><td style="font-size:12px">'+escHtml(t.cat||'')+'</td><td style="font-size:12px">'+escHtml(t.desc||'')+'</td>'+aH+'<td style="font-size:11px;color:var(--text3)">'+escHtml(t.docno||'—')+'</td><td style="font-size:11px;color:var(--text2)">'+escHtml(t.task||'—')+'</td><td><button onclick="acctDelTxn(\''+t.id+'\')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:2px 5px" onmouseover="this.style.color=\'var(--red)\'" onmouseout="this.style.color=\'var(--text3)\'">🗑</button></td></tr>';
+  }).join('');
+  const net=tI-tE;
+  if(foot)foot.innerHTML='<tr style="background:var(--bg3);font-weight:700;font-size:12px"><td colspan="5" style="padding:9px 14px;text-align:right;color:var(--text2)">รวม ('+txns.length+' รายการ)</td><td style="text-align:right;padding:9px 14px;font-family:IBM Plex Mono,monospace;color:'+(net>=0?'var(--green)':'var(--red)')+')">'+(net>=0?'+':'−')+c.sym+' '+toDisplay(Math.abs(net)).toLocaleString('en-US',{minimumFractionDigits:2})+'</td><td colspan="3"></td></tr>';
+}
+function acctRenderPL(txns,totalInc,totalExp,profit,projBudget,margin){
+  const body=document.getElementById('acct-pl-body');if(!body)return;
+  const c=getCurr();const fmt=n=>c.sym+' '+toDisplay(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const ibc={},ebc={};
+  txns.filter(t=>t.type==='income').forEach(t=>{ibc[t.cat]=(ibc[t.cat]||0)+t.amount;});
+  txns.filter(t=>t.type==='expense').forEach(t=>{ebc[t.cat]=(ebc[t.cat]||0)+t.amount;});
+  let h='<tr class="section-hdr"><td colspan="2">รายรับ (Revenue)</td></tr>';
+  Object.entries(ibc).forEach(([cat,amt])=>{h+='<tr><td style="padding-left:24px;font-size:11px;color:var(--text2)">'+escHtml(cat)+'</td><td class="acct-pl-amt" style="padding-right:16px">'+fmt(amt)+'</td></tr>';});
+  if(!Object.keys(ibc).length)h+='<tr><td colspan="2" style="padding-left:24px;font-size:11px;color:var(--text3)">ยังไม่มีรายรับ</td></tr>';
+  h+='<tr class="subtotal"><td style="padding-left:12px">รวมรายรับ</td><td class="acct-pl-amt '+(totalInc>0?'pos':'')+'" style="padding-right:16px">'+fmt(totalInc)+'</td></tr>';
+  h+='<tr class="section-hdr"><td colspan="2">รายจ่าย (Expenses)</td></tr>';
+  Object.entries(ebc).forEach(([cat,amt])=>{h+='<tr><td style="padding-left:24px;font-size:11px;color:var(--text2)">'+escHtml(cat)+'</td><td class="acct-pl-amt neg" style="padding-right:16px">−'+fmt(amt)+'</td></tr>';});
+  if(!Object.keys(ebc).length)h+='<tr><td colspan="2" style="padding-left:24px;font-size:11px;color:var(--text3)">ยังไม่มีรายจ่าย</td></tr>';
+  h+='<tr class="subtotal"><td style="padding-left:12px">รวมรายจ่าย</td><td class="acct-pl-amt neg" style="padding-right:16px">−'+fmt(totalExp)+'</td></tr>';
+  h+='<tr class="total-row"><td style="padding:10px 14px">กำไรสุทธิ (Net Profit)</td><td class="acct-pl-amt '+(profit>=0?'pos':'neg')+'" style="font-size:14px;padding-right:16px">'+(profit>=0?'+':'−')+fmt(Math.abs(profit))+'</td></tr>';
+  if(projBudget>0){const v=projBudget-totalExp;h+='<tr><td style="padding-left:14px;font-size:11px;color:var(--text2)">Gross Margin</td><td class="acct-pl-amt '+(profit>=0?'pos':'neg')+'" style="padding-right:16px;font-size:11px">'+margin.toFixed(1)+'%</td></tr><tr><td style="padding-left:14px;font-size:11px;color:var(--text2)">Budget Variance</td><td class="acct-pl-amt '+(v>=0?'pos':'neg')+'" style="padding-right:16px;font-size:11px">'+(v>=0?'+':'−')+fmt(Math.abs(v))+'</td></tr>';}
+  body.innerHTML=h;
+}
+function acctRenderMonthlyChart(txns){
+  const container=document.getElementById('acct-monthly-chart');if(!container)return;
+  const months={};txns.forEach(t=>{if(!t.date)return;const ym=t.date.slice(0,7);if(!months[ym])months[ym]={inc:0,exp:0};if(t.type==='income')months[ym].inc+=t.amount;else months[ym].exp+=t.amount;});
+  const keys=Object.keys(months).sort();if(!keys.length){container.innerHTML='<div style="color:var(--text3);font-size:11px;padding:10px">ยังไม่มีข้อมูล</div>';return;}
+  const maxVal=Math.max(...keys.flatMap(k=>[months[k].inc,months[k].exp]),0.01);const c=getCurr();
+  container.innerHTML=keys.map(ym=>{const d=months[ym];const iH=Math.round((d.inc/maxVal)*88);const eH=Math.round((d.exp/maxVal)*88);const p=ym.split('-');const l=p[1]+'/'+String(parseInt(p[0])+543).slice(-2);return '<div style="flex:1;min-width:28px;max-width:50px;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="position:relative;height:88px;width:100%;display:flex;gap:1px;align-items:flex-end"><div style="flex:1;height:'+iH+'px;background:var(--green);border-radius:2px 2px 0 0;min-height:2px" title="รายรับ: '+c.sym+toDisplay(d.inc).toLocaleString()+'"></div><div style="flex:1;height:'+eH+'px;background:var(--red);border-radius:2px 2px 0 0;min-height:2px" title="รายจ่าย: '+c.sym+toDisplay(d.exp).toLocaleString()+'"></div></div><div style="font-size:8px;color:var(--text3);text-align:center;white-space:nowrap">'+l+'</div></div>';}).join('');
+}
+function acctRenderTaskBreakdown(txns,projData){
+  const body=document.getElementById('acct-task-body');if(!body)return;
+  const tB={};if(projData&&projData.state&&projData.state.tasks)projData.state.tasks.forEach(t=>{let b=0;if(t.subtasks&&t.subtasks.length>0)t.subtasks.forEach(s=>{b+=(s.budgetMat||0)+(s.budgetLab||0);});else b=(t.budgetMat||0)+(t.budgetLab||0);if(b>0)tB[t.name]=b;});
+  const tA={};txns.filter(t=>t.type==='expense'&&t.task).forEach(t=>{tA[t.task]=(tA[t.task]||0)+t.amount;});
+  const allT=[...new Set([...Object.keys(tB),...Object.keys(tA)])];
+  if(!allT.length){body.innerHTML='<tr><td colspan="5"><div class="acct-empty">ยังไม่มีข้อมูล</div></td></tr>';return;}
+  const c=getCurr();const fmt=n=>c.sym+' '+toDisplay(n).toLocaleString('en-US',{minimumFractionDigits:2});
+  body.innerHTML=allT.map(name=>{const b=tB[name]||0;const a=tA[name]||0;const d=b-a;const p=b>0?(a/b*100):(a>0?999:0);const bW=Math.min(100,p);const bC=p>100?'var(--red)':p>80?'var(--accent)':'var(--green)';return '<tr><td style="font-size:12px">'+escHtml(name)+'</td><td class="acct-pl-amt acc">'+(b>0?fmt(b):'—')+'</td><td class="acct-pl-amt '+(a>0?'neg':'')+'">'+(a>0?'−'+fmt(a):'—')+'</td><td class="acct-pl-amt '+(b>0?(d>=0?'pos':'neg'):'')+'">'+(b>0?(d>=0?'+':'-')+fmt(Math.abs(d)):'—')+'</td><td><div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+bW+'%;background:'+bC+';border-radius:3px"></div></div><span style="font-size:10px;font-family:IBM Plex Mono,monospace;color:'+bC+';white-space:nowrap">'+(b>0?p.toFixed(1)+'%':(a>0?'ไม่มีงบ':'—'))+'</span></div></td></tr>';}).join('');
+}
+async function acctExportExcel(){
+  if(!_acctProjId){pmToast('กรุณาเลือกโปรเจกต์','var(--red)');return;}
+  if(typeof ExcelJS==='undefined'){pmToast('ExcelJS ไม่พร้อม','var(--red)');return;}
+  _dbGetAsync().then(async db=>{
+    const p=db[_acctProjId];const pN=p?p.name:'Project';const data=_acctGetProj(_acctProjId);const txns=(data.txns||[]).sort((a,b)=>a.date.localeCompare(b.date));const c=getCurr();
+    const wb=new ExcelJS.Workbook();wb.creator='AI Construction PM Suite';wb.created=new Date();
+    const ws=wb.addWorksheet('รายการ');
+    ws.columns=[{header:'#',key:'no',width:5},{header:'วันที่',key:'date',width:14},{header:'ประเภท',key:'type',width:10},{header:'หมวดหมู่',key:'cat',width:20},{header:'คำอธิบาย',key:'desc',width:35},{header:'จำนวนเงิน ('+c.code+')',key:'amt',width:18},{header:'เอกสาร',key:'doc',width:16},{header:'Task',key:'task',width:25}];
+    ws.getRow(1).eachCell(cell=>{cell.font={bold:true,color:{argb:'FF1A1208'}};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFC47F00'}};cell.alignment={vertical:'middle',horizontal:'center'};});
+    let rI=0,rE=0;
+    txns.forEach((t,i)=>{const isInc=t.type==='income';const amt=toDisplay(t.amount);if(isInc)rI+=amt;else rE+=amt;const wr=ws.addRow({no:i+1,date:t.date,type:isInc?'รายรับ':'รายจ่าย',cat:t.cat||'',desc:t.desc||'',amt:isInc?amt:-amt,doc:t.docno||'',task:t.task||''});wr.getCell('type').font={color:{argb:isInc?'FF27865A':'FFC0392B'},bold:true};wr.getCell('amt').numFmt='#,##0.00';wr.getCell('amt').alignment={horizontal:'right'};});
+    ws.addRow([]);ws.addRow({desc:'รวมรายรับ',amt:rI});ws.addRow({desc:'รวมรายจ่าย',amt:-rE});const nr=ws.addRow({desc:'กำไร/ขาดทุน',amt:rI-rE});nr.font={bold:true,size:12};nr.getCell('amt').numFmt='#,##0.00';
+    const buf=await wb.xlsx.writeBuffer();const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const d=new Date();const ds=d.getDate()+'-'+(d.getMonth()+1)+'-'+(d.getFullYear()+543);
+    await saveFileWithPicker(blob,'Accounting_'+pN.replace(/\s+/g,'_')+'_'+ds+'.xlsx','รายงานการเงิน');
+    pmToast('Export Excel สำเร็จ','var(--green)');
+  });
+}
+async function acctExportPDF(){
+  if(!_acctProjId){pmToast('กรุณาเลือกโปรเจกต์','var(--red)');return;}
+  if(typeof window.jspdf==='undefined'){pmToast('jsPDF ไม่พร้อม','var(--red)');return;}
+  _dbGetAsync().then(db=>{
+    const p=db[_acctProjId];const pN=p?p.name:'Project';const data=_acctGetProj(_acctProjId);const txns=(data.txns||[]).sort((a,b)=>a.date.localeCompare(b.date));const c=getCurr();
+    const tI=txns.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);const tE=txns.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);const profit=tI-tE;const margin=tI>0?(profit/tI*100):0;
+    const fmt=n=>c.sym+' '+toDisplay(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const W=210,ml=14,mr=14,tw=W-ml-mr;let y=16;
+    doc.setFillColor(196,127,0);doc.rect(0,0,W,18,'F');doc.setTextColor(26,18,8);doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text('PROJECT ACCOUNTING REPORT',ml,12);doc.setFontSize(9);doc.text('SSV3D — AI Construction PM Suite',W-mr,12,{align:'right'});y=26;
+    doc.setTextColor(44,42,37);doc.setFont('helvetica','bold');doc.setFontSize(12);doc.text(pN,ml,y);y+=6;doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(107,103,96);doc.text('Export: '+new Date().toLocaleDateString('th-TH')+' | '+c.flag+' '+c.code,ml,y);y+=10;
+    const bW=(tw-6)/3;[{l:'รายรับรวม',v:fmt(tI),c:[39,134,90]},{l:'รายจ่ายรวม',v:fmt(tE),c:[192,57,43]},{l:'กำไร/ขาดทุน',v:(profit>=0?'+':'')+fmt(profit),c:profit>=0?[39,134,90]:[192,57,43]}].forEach((b,i)=>{const bx=ml+i*(bW+3);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(107,103,96);doc.text(b.l,bx+3,y+5);doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(...b.c);doc.text(b.v.substring(0,20),bx+3,y+12);});y+=22;
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(44,42,37);doc.text('รายการทั้งหมด ('+txns.length+')',ml,y);y+=5;
+    doc.setFillColor(240,237,230);doc.rect(ml,y,tw,7,'F');doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(107,103,96);let cx=ml+1;['#','วันที่','ประเภท','หมวดหมู่','คำอธิบาย','จำนวนเงิน','Task'].forEach((h,i)=>{doc.text(h,cx,y+5);cx+=[5,22,16,28,60,26,25][i];});y+=8;
+    txns.forEach((t,i)=>{if(y>260){doc.addPage();y=16;}const isInc=t.type==='income';if(i%2===0){doc.setFillColor(250,249,246);doc.rect(ml,y-3,tw,7,'F');}doc.setFont('helvetica','normal');doc.setFontSize(7);cx=ml+1;[String(i+1),t.date||'—',isInc?'รายรับ':'รายจ่าย',t.cat||'',t.desc||'',(isInc?'+':'-')+fmt(t.amount),t.task||''].forEach((v,ci)=>{if(ci===5)doc.setTextColor(isInc?39:192,isInc?134:57,isInc?90:43);else doc.setTextColor(44,42,37);doc.text(v.substring(0,ci===4?38:18),cx,y+3);cx+=[5,22,16,28,60,26,25][ci];});doc.setDrawColor(220,217,208);doc.line(ml,y+4,ml+tw,y+4);y+=7;});
+    y+=8;if(y>230){doc.addPage();y=16;}doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(44,42,37);doc.text('P&L Summary',ml,y);y+=6;
+    [{l:'รวมรายรับ',v:fmt(tI),c:[39,134,90]},{l:'รวมรายจ่าย',v:'-'+fmt(tE),c:[192,57,43]},{l:'กำไรสุทธิ',v:(profit>=0?'+':'-')+fmt(Math.abs(profit)),c:profit>=0?[39,134,90]:[192,57,43]},{l:'Gross Margin',v:margin.toFixed(1)+'%',c:profit>=0?[39,134,90]:[192,57,43]}].forEach(r=>{doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(107,103,96);doc.text(r.l,ml,y);doc.setFont('helvetica','bold');doc.setTextColor(...r.c);doc.text(r.v,W-mr,y,{align:'right'});y+=6;});
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(158,154,146);doc.text('SSV3D © 2026 | AI Construction PM Suite',W/2,292,{align:'center'});
+    const d=new Date();const ds=d.getDate()+'-'+(d.getMonth()+1)+'-'+(d.getFullYear()+543);
+    doc.save('Accounting_'+pN.replace(/\s+/g,'_')+'_'+ds+'.pdf');
+    pmToast('Export PDF สำเร็จ','var(--blue)');
+  });
+}
+
 </script>
 
 <!-- ═══════════════════════════════════════════════════ -->
@@ -5170,6 +5395,138 @@ function toggleLang(){
 
 <!-- Notification toast for appointments -->
 <div id="appt-toast-container" style="position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;"></div>
+
+
+<!-- ===================== TAB: PROJECT ACCOUNTING (LT only) ===================== -->
+<div class="page" id="page-acct">
+  <div id="acct-lt-gate">
+    <div class="acct-gate-box">
+      <div class="acct-gate-icon">🔒</div>
+      <div class="acct-gate-title">Project Accounting — LT Only</div>
+      <div class="acct-gate-desc">
+        ฟีเจอร์ <strong>บัญชีโครงการก่อสร้าง</strong> สำหรับ<br>
+        <strong>License ตลอดชีพ (Lifetime)</strong> เท่านั้น<br><br>
+        • รายรับ-รายจ่ายต่อโปรเจกต์<br>
+        • สรุปกำไร / ขาดทุน P&L<br>
+        • Export PDF & Excel รายงาน<br><br>
+        <button class="btn accent" style="margin-top:4px" onclick="switchTab('renew')">♾️ อัปเกรด License ตลอดชีพ</button>
+      </div>
+    </div>
+  </div>
+  <div id="acct-main" style="display:none">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+      <div class="slabel" style="margin-bottom:0">📒 บัญชีโครงการ</div>
+      <select id="acct-proj-sel" class="acct-sel" onchange="acctLoadProject(this.value)" style="min-width:200px">
+        <option value="">— เลือกโปรเจกต์ —</option>
+      </select>
+      <span id="acct-proj-name-badge" style="font-size:11px;color:var(--text2)"></span>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn green" onclick="acctExportExcel()" style="gap:5px">📥 Excel</button>
+        <button class="btn blue" onclick="acctExportPDF()" style="gap:5px">📄 PDF</button>
+      </div>
+    </div>
+    <!-- Summary Cards -->
+    <div class="acct-summary-row">
+      <div class="acct-sum-card inc"><div class="acct-sum-lbl">💰 รายรับรวม</div><div class="acct-sum-val" id="acct-s-income">—</div><div class="acct-sum-sub" id="acct-s-income-cnt">0 รายการ</div></div>
+      <div class="acct-sum-card exp"><div class="acct-sum-lbl">💸 รายจ่ายรวม</div><div class="acct-sum-val" id="acct-s-expense">—</div><div class="acct-sum-sub" id="acct-s-expense-cnt">0 รายการ</div></div>
+      <div class="acct-sum-card profit" id="acct-s-profit-card"><div class="acct-sum-lbl">📊 กำไร / ขาดทุน</div><div class="acct-sum-val" id="acct-s-profit">—</div><div class="acct-sum-sub" id="acct-s-margin">Gross Margin: —</div></div>
+      <div class="acct-sum-card budget"><div class="acct-sum-lbl">🗂️ งบประมาณ</div><div class="acct-sum-val" id="acct-s-budget">—</div><div class="acct-sum-sub" id="acct-s-budget-used">ใช้ไปแล้ว —%</div></div>
+      <div class="acct-sum-card margin"><div class="acct-sum-lbl">📈 Budget Variance</div><div class="acct-sum-val" id="acct-s-variance">—</div><div class="acct-sum-sub" id="acct-s-variance-lbl">vs งบประมาณ</div></div>
+    </div>
+    <!-- Add Transaction -->
+    <div class="acct-add-panel">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+        ➕ เพิ่มรายการ
+        <div class="acct-type-toggle">
+          <button class="acct-type-btn inc active" id="acct-add-type-inc" onclick="acctSetType('income')">💰 รายรับ</button>
+          <button class="acct-type-btn exp" id="acct-add-type-exp" onclick="acctSetType('expense')">💸 รายจ่าย</button>
+        </div>
+      </div>
+      <div class="acct-add-grid">
+        <div class="fg"><label style="font-size:10px;color:var(--text2)">วันที่</label><input type="date" id="acct-add-date" class="acct-inp"></div>
+        <div class="fg"><label style="font-size:10px;color:var(--text2)">หมวดหมู่</label>
+          <select id="acct-add-cat" class="acct-inp">
+            <option value="รายรับจากงาน">รายรับจากงาน</option>
+            <option value="เงินมัดจำ">เงินมัดจำ</option>
+            <option value="ค่างวด">ค่างวด</option>
+            <option value="ค่าวัสดุ">ค่าวัสดุ</option>
+            <option value="ค่าแรงงาน">ค่าแรงงาน</option>
+            <option value="ค่าเครื่องจักร">ค่าเครื่องจักร</option>
+            <option value="ค่าขนส่ง">ค่าขนส่ง</option>
+            <option value="ค่าออกแบบ/วิศวกร">ค่าออกแบบ/วิศวกร</option>
+            <option value="ค่าใช้จ่ายทั่วไป">ค่าใช้จ่ายทั่วไป</option>
+            <option value="อื่นๆ">อื่นๆ</option>
+          </select>
+        </div>
+        <div class="fg"><label style="font-size:10px;color:var(--text2)">คำอธิบาย</label><input id="acct-add-desc" class="acct-inp" placeholder="รายละเอียด..." onkeydown="if(event.key==='Enter')acctAddTxn()"></div>
+        <div class="fg"><label style="font-size:10px;color:var(--text2)">จำนวนเงิน (<span id="acct-add-currency-lbl">USD</span>)</label><input type="number" id="acct-add-amount" class="acct-inp" placeholder="0.00" min="0" step="0.01" onkeydown="if(event.key==='Enter')acctAddTxn()"></div>
+        <div class="fg"><label style="font-size:10px;color:var(--text2)">เลขที่เอกสาร</label><input id="acct-add-docno" class="acct-inp" placeholder="INV-001"></div>
+        <div class="fg"><label style="font-size:10px;color:var(--text2)">งาน (Task)</label><select id="acct-add-task" class="acct-inp"><option value="">— ทั่วไป —</option></select></div>
+        <button class="btn accent" onclick="acctAddTxn()" style="margin-top:21px;white-space:nowrap;height:36px">+ เพิ่ม</button>
+      </div>
+    </div>
+    <!-- Filter -->
+    <div class="acct-toolbar">
+      <div class="slabel" style="margin-bottom:0">📋 รายการทั้งหมด</div>
+      <div class="acct-filter-row">
+        <select id="acct-filter-type" class="acct-sel" onchange="acctRenderTxns()"><option value="all">ทั้งหมด</option><option value="income">รายรับ</option><option value="expense">รายจ่าย</option></select>
+        <select id="acct-filter-cat" class="acct-sel" onchange="acctRenderTxns()"><option value="all">ทุกหมวด</option></select>
+        <select id="acct-filter-task" class="acct-sel" onchange="acctRenderTxns()"><option value="all">ทุก Task</option></select>
+        <input type="month" id="acct-filter-month" class="acct-sel" onchange="acctRenderTxns()">
+        <button class="btn" onclick="acctClearFilters()" style="font-size:11px;padding:7px 12px">✕ ล้าง</button>
+      </div>
+    </div>
+    <!-- Table -->
+    <div class="acct-table-wrap">
+      <table class="acct-tbl">
+        <thead><tr>
+          <th style="width:36px">#</th><th style="width:90px">วันที่</th><th style="width:70px">ประเภท</th>
+          <th>หมวดหมู่</th><th>คำอธิบาย</th><th style="text-align:right">จำนวนเงิน</th>
+          <th>เลขที่เอกสาร</th><th>งาน</th><th style="width:60px"></th>
+        </tr></thead>
+        <tbody id="acct-txn-body"><tr><td colspan="9"><div class="acct-empty">ยังไม่มีรายการ — เลือกโปรเจกต์และเพิ่มรายการได้เลยครับ</div></td></tr></tbody>
+        <tfoot id="acct-txn-foot"></tfoot>
+      </table>
+    </div>
+    <!-- P&L + Chart -->
+    <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:16px;margin-bottom:20px">
+      <div class="card">
+        <div class="card-header"><div class="card-title">📊 รายรับ/รายจ่ายรายเดือน</div></div>
+        <div class="card-body" style="padding:12px 16px">
+          <div id="acct-monthly-chart" style="display:flex;gap:3px;align-items:flex-end;height:100px;margin-bottom:8px"></div>
+          <div style="display:flex;gap:12px;font-size:10px;color:var(--text2)">
+            <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:var(--green);border-radius:2px;display:inline-block"></span>รายรับ</span>
+            <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:var(--red);border-radius:2px;display:inline-block"></span>รายจ่าย</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">📑 สรุปกำไร-ขาดทุน (P&L)</div></div>
+        <div class="card-body" style="padding:0">
+          <table class="acct-pl-table" style="width:100%">
+            <thead><tr><th style="text-align:left">รายการ</th><th style="text-align:right;padding-right:16px">จำนวนเงิน</th></tr></thead>
+            <tbody id="acct-pl-body"><tr><td colspan="2" style="text-align:center;padding:20px;color:var(--text3);font-size:12px">เลือกโปรเจกต์เพื่อดู P&L</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Task Breakdown -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-header"><div class="card-title">📋 รายจ่ายตาม Task</div><span style="font-size:11px;color:var(--text3)">เปรียบเทียบจริง vs งบประมาณ</span></div>
+      <div class="card-body" style="padding:0">
+        <table class="acct-tbl">
+          <thead><tr><th>Task</th><th style="text-align:right">งบประมาณ</th><th style="text-align:right">จ่ายจริง</th><th style="text-align:right">ส่วนต่าง</th><th style="width:120px">%ใช้งบ</th></tr></thead>
+          <tbody id="acct-task-body"><tr><td colspan="5"><div class="acct-empty">ยังไม่มีข้อมูล</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="export-row">
+      <button class="btn" onclick="window.print()">🖨️ Print P&L</button>
+      <button class="btn green" onclick="acctExportExcel()">📥 Export Excel</button>
+      <button class="btn blue" onclick="acctExportPDF()">📄 Export PDF</button>
+    </div>
+  </div>
+</div>
 
 
 <!-- ===================== TAB 4: RENEW LICENSE ===================== -->
