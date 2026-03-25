@@ -1068,6 +1068,16 @@ body { overflow: hidden; }
       </div>
     </div>
     <!-- Footer summary -->
+    <!-- วันที่ทำรายการ — ส่งไปแท็บบัญชีอัตโนมัติ -->
+    <div style="padding:8px 18px;background:var(--bg3);border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <span style="font-size:10px;font-weight:600;color:var(--text2);white-space:nowrap">📅 วันที่ทำรายการ</span>
+      <input type="date" id="bm-txn-date" class="bm-inp" style="width:160px;font-size:11px;padding:5px 8px">
+      <span style="font-size:10px;color:var(--text3)">→ บันทึกลงแท็บบัญชีอัตโนมัติ</span>
+      <label style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text2);cursor:pointer;margin-left:auto">
+        <input type="checkbox" id="bm-auto-acct" checked style="cursor:pointer">
+        บันทึกลงบัญชี
+      </label>
+    </div>
     <div class="bm-footer">
       <div class="bm-summary">
         <div class="bm-sum-item">
@@ -4458,6 +4468,11 @@ function openBudgetModal(level, ti, si, s2i){
   // Open
   document.getElementById('budget-modal-overlay').classList.add('open');
   document.getElementById('bm-inp-name').focus();
+  // ตั้งวันที่ default = วันนี้
+  const _bmToday = new Date();
+  const _bmDStr = _bmToday.getFullYear()+'-'+String(_bmToday.getMonth()+1).padStart(2,'0')+'-'+String(_bmToday.getDate()).padStart(2,'0');
+  const _bmDateEl = document.getElementById('bm-txn-date');
+  if(_bmDateEl && !_bmDateEl.value) _bmDateEl.value = _bmDStr;
 }
 
 function closeBudgetModal(){
@@ -4561,6 +4576,49 @@ function bmSave(){
   closeBudgetModal();
   renderTasks();
   pmSaveCurrent();
+
+  // ── Auto-sync ไปแท็บบัญชี ──
+  const autoAcct = document.getElementById('bm-auto-acct');
+  if(autoAcct && autoAcct.checked && _curId) {
+    const txnDate = (document.getElementById('bm-txn-date')||{}).value || new Date().toISOString().slice(0,10);
+    const taskName = target.name || 'งาน';
+    const db = _acctDB();
+    if(!db[_curId]) db[_curId] = {txns:[], notes:''};
+
+    const matTotal = Math.round(target.matItems && target.matItems.length > 0
+      ? target.matItems.reduce((s,x) => s+(x.qty||1)*(x.price||0), 0)
+      : (target.budgetMat||0));
+    const labTotal = Math.round(target.labItems && target.labItems.length > 0
+      ? target.labItems.reduce((s,x) => s+(x.qty||1)*(x.price||0), 0)
+      : (target.budgetLab||0));
+
+    // ลบ transaction เก่าของ task นี้ออกก่อน (ถ้ามี) แล้วสร้างใหม่
+    db[_curId].txns = (db[_curId].txns||[]).filter(t =>
+      !(t._bmSource && t.task === taskName)
+    );
+
+    if(matTotal > 0) {
+      db[_curId].txns.push({
+        id: _acctTxnId(), date: txnDate, type: 'expense',
+        cat: 'ค่าวัสดุ', desc: 'ค่าวัสดุ — '+taskName,
+        amount: toBase(matTotal), docno: '', task: taskName,
+        _bmSource: true, createdAt: new Date().toISOString()
+      });
+    }
+    if(labTotal > 0) {
+      db[_curId].txns.push({
+        id: _acctTxnId(), date: txnDate, type: 'expense',
+        cat: 'ค่าแรงงาน', desc: 'ค่าแรงงาน — '+taskName,
+        amount: toBase(labTotal), docno: '', task: taskName,
+        _bmSource: true, createdAt: new Date().toISOString()
+      });
+    }
+    _acctSave(db);
+    if(matTotal > 0 || labTotal > 0) {
+      const c = getCurr();
+      pmToast('📒 บันทึกลงบัญชี: '+taskName+' — วัสดุ '+c.sym+(toDisplay(matTotal)||0).toLocaleString()+' / แรงงาน '+c.sym+(toDisplay(labTotal)||0).toLocaleString(), 'var(--green)');
+    }
+  }
 }
 
 // Close on overlay click
