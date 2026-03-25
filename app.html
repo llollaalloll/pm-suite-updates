@@ -582,6 +582,30 @@ body { overflow: hidden; }
 #lic-footer a{color:#C47F00;}
 @keyframes lic-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 .lic-shake{animation:lic-shake 0.4s ease;}
+/* ═══ ACCT UPGRADE POPUP ═══ */
+#acct-upgrade-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+  z-index:9500;align-items:center;justify-content:center;
+}
+#acct-upgrade-overlay.show{display:flex;}
+#acct-upgrade-modal{
+  background:var(--bg2);border:1.5px solid var(--accent);border-radius:16px;
+  padding:32px 36px;max-width:420px;width:90%;text-align:center;
+  box-shadow:0 16px 60px rgba(196,127,0,.25);
+}
+.acct-upgrade-icon{font-size:48px;margin-bottom:12px;}
+.acct-upgrade-title{font-size:18px;font-weight:700;color:var(--accent);margin-bottom:8px;}
+.acct-upgrade-desc{font-size:13px;color:var(--text2);line-height:1.75;margin-bottom:20px;}
+.acct-upgrade-plans{display:flex;gap:10px;justify-content:center;margin-bottom:20px;}
+.acct-upgrade-plan{
+  flex:1;background:var(--bg3);border:1.5px solid var(--border2);border-radius:10px;
+  padding:14px 12px;cursor:pointer;transition:all .15s;
+}
+.acct-upgrade-plan:hover{border-color:var(--accent);background:var(--accent-soft);}
+.acct-upgrade-plan .plan-icon{font-size:22px;margin-bottom:6px;}
+.acct-upgrade-plan .plan-name{font-size:12px;font-weight:700;color:var(--text);}
+.acct-upgrade-plan .plan-desc{font-size:10px;color:var(--text3);margin-top:3px;}
+
 /* ═══ ACCT EDIT MODAL ═══ */
 #acct-edit-overlay{
   display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:8000;
@@ -1484,6 +1508,7 @@ const DEF_TASKS=[
 // TAB SWITCH
 // ============================================================
 function switchTab(t){
+  if(t!=='acct') _lastTab=t; // บันทึก tab ล่าสุดที่ไม่ใช่ acct
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
     b.classList.toggle('active',['schedule','gantt','report','acct','renew'][i]===t);
   });
@@ -1491,7 +1516,22 @@ function switchTab(t){
   document.getElementById('page-'+t).classList.add('active');
   if(t==='gantt'&&ST.startDate)renderGantt();
   if(t==='renew') renderRenewStatus();
-  if(t==='acct'){ acctInit(); _dbGetAsync().then(db=>acctPopulateProjectSel(db)); if(_curId){ const s=document.getElementById('acct-proj-sel'); if(s){ s.value=_curId; acctLoadProject(_curId); } } }
+  if(t==='acct'){
+    // ตรวจ license ก่อน — ถ้าไม่ผ่านให้แสดง upgrade popup แทน
+    if(!_acctIsLT()){
+      acctShowUpgradePopup();
+      // กลับไป tab เดิม
+      document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+        b.classList.toggle('active',['schedule','gantt','report','acct','renew'][i]===_lastTab);
+      });
+      document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+      const lastPage=document.getElementById('page-'+_lastTab);
+      if(lastPage) lastPage.classList.add('active');
+      return;
+    }
+    acctInit(); _dbGetAsync().then(db=>acctPopulateProjectSel(db));
+    if(_curId){ const s=document.getElementById('acct-proj-sel'); if(s){ s.value=_curId; acctLoadProject(_curId); } }
+  }
   const sb=document.getElementById('sidebar');
   if(sb){
     if(t==='report'||t==='renew'||t==='acct') sb.classList.add('hidden');
@@ -5600,13 +5640,22 @@ async function triggerCheckUpdate() {
 
 // ════════════════════════ ACCOUNTING MODULE ════════════════════════
 const _ACCT_STORE='aipm7_acct';
-let _acctProjId=null,_acctType='income';
+let _acctProjId=null,_acctType='income',_lastTab='schedule';
 function _acctDB(){try{return JSON.parse(localStorage.getItem(_ACCT_STORE)||'{}');}catch(e){return{};}}
 function _acctSave(db){try{localStorage.setItem(_ACCT_STORE,JSON.stringify(db));}catch(e){}}
 function _acctGetProj(id){const db=_acctDB();if(!db[id])db[id]={txns:[],notes:''};return db[id];}
 function _acctTxnId(){return 'tx'+Date.now()+Math.random().toString(36).slice(2,6);}
 function acctFmt(n){if(n===null||n===undefined)return '—';const c=getCurr();return c.sym+' '+Math.abs(toDisplay(n)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function _acctIsLT(){try{const s=localStorage.getItem(_LIC_STORE);if(!s)return false;return JSON.parse(s).type==='LT';}catch(e){return false;}}
+
+function acctShowUpgradePopup(){
+  const ov=document.getElementById('acct-upgrade-overlay');
+  if(ov) ov.classList.add('show');
+}
+function acctCloseUpgradePopup(){
+  const ov=document.getElementById('acct-upgrade-overlay');
+  if(ov) ov.classList.remove('show');
+}
+function _acctIsLT(){try{const s=localStorage.getItem(_LIC_STORE);if(!s)return false;const t=JSON.parse(s).type;return t==='LT'||t==='1Y';}catch(e){return false;}}
 function acctInit(){
   const isLT=_acctIsLT();
   document.getElementById('acct-lt-gate').classList.toggle('show',!isLT);
@@ -6223,6 +6272,33 @@ async function acctExportPDF(){
 </div><!-- /sb-row -->
 </div><!-- /sb-overlay -->
 <div id="pm-toast"></div>
+<!-- ACCT UPGRADE POPUP -->
+<div id="acct-upgrade-overlay">
+  <div id="acct-upgrade-modal">
+    <div class="acct-upgrade-icon">📒</div>
+    <div class="acct-upgrade-title">ระบบบัญชีโครงการ</div>
+    <div class="acct-upgrade-desc">
+      ฟีเจอร์นี้ต้องการ <strong>License 1 ปี</strong> หรือ <strong>ตลอดชีพ</strong><br>
+      รายรับ-รายจ่าย · P&L · Export Excel/PDF · Sync กับ Task Schedule
+    </div>
+    <div class="acct-upgrade-plans">
+      <div class="acct-upgrade-plan" onclick="switchTab('renew');acctCloseUpgradePopup()">
+        <div class="plan-icon">📅</div>
+        <div class="plan-name">1 ปี</div>
+        <div class="plan-desc">ใช้งานระบบบัญชี</div>
+      </div>
+      <div class="acct-upgrade-plan" onclick="switchTab('renew');acctCloseUpgradePopup()">
+        <div class="plan-icon">♾️</div>
+        <div class="plan-name">ตลอดชีพ</div>
+        <div class="plan-desc">ครบทุก feature</div>
+      </div>
+    </div>
+    <button class="btn" onclick="acctCloseUpgradePopup()" style="font-size:12px;padding:8px 24px">
+      ปิด
+    </button>
+  </div>
+</div>
+
 <!-- ACCT EDIT MODAL -->
 <div id="acct-edit-overlay">
   <div id="acct-edit-modal">
