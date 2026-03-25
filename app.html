@@ -3608,41 +3608,104 @@ async function _migrateToFile(){
 let _curId = null;
 
 // ════════════════════════════════════════════════════════════
-// UPDATE BUTTON — ใช้ window.require ตรงเหมือน _dbGetAsync
-// อยู่ใน script block เดียวกับ _isElectron จึง scope ถูกต้อง
+// UPDATE BUTTON — ใช้ fetch() ตรงไป GitHub (CORS: * อนุญาต)
+// ไม่ต้องพึ่ง window.require หรือ IPC เลย
 // ════════════════════════════════════════════════════════════
+const _GH_VERSION_URL = 'https://raw.githubusercontent.com/llollaalloll/pm-suite-updates/main/version.json';
+const _GH_HTML_URL    = 'https://raw.githubusercontent.com/llollaalloll/pm-suite-updates/main/app.html';
+
 async function triggerCheckUpdate() {
   const btn   = document.getElementById('update-btn');
   const icon  = document.getElementById('update-btn-icon');
   const label = document.getElementById('update-btn-label');
   if (!btn) return;
 
-  // ตรวจสอบ Electron ด้วยวิธีเดียวกับ _dbGetAsync (ไม่ใช้ _isElectron ที่อาจ scope ต่าง)
-  const hasElectron = !!(window && window.require);
-  if (!hasElectron) {
-    pmToast('⚠️ ใช้ได้เฉพาะใน Electron app เท่านั้น', 'var(--red)');
-    return;
-  }
-
   // Loading state
   btn.disabled = true;
   btn.style.borderColor = 'var(--accent)';
-  btn.style.color       = 'var(--accent)';
+  btn.style.color = 'var(--accent)';
   if (icon)  icon.textContent  = '⏳';
   if (label) label.textContent = 'กำลังตรวจสอบ...';
 
   try {
-    const ipc = window.require('electron').ipcRenderer;
-    await ipc.invoke('check-update');
-    // main.js จัดการแสดง dialog + download เอง
+    // ── Step 1: ดึง version.json จาก GitHub ──
+    const res = await fetch(_GH_VERSION_URL + '?t=' + Date.now()); // cache-bust
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const info = await res.json();
+    const remoteVer = info.version;
+    const notes     = info.notes || '';
+
+    // ── Step 2: หา version ปัจจุบันของ app ──
+    const currentVer = (window.__APP_VERSION || document.getElementById('app-version-badge')?.textContent?.replace('v','') || '0.0.0').trim();
+
+    if (remoteVer === currentVer) {
+      pmToast('✅ v' + currentVer + ' — เป็นเวอร์ชันล่าสุดแล้วครับ', 'var(--green)');
+      return;
+    }
+
+    // ── Step 3: พบ version ใหม่ — ถามก่อน download ──
+    const confirmed = confirm(
+      '🚀 พบเวอร์ชันใหม่!\n\n' +
+      'ปัจจุบัน: v' + currentVer + '\n' +
+      'ใหม่:     v' + remoteVer + '\n' +
+      (notes ? '\n📋 ' + notes + '\n' : '') +
+      '\nดาวน์โหลดและโหลดหน้าใหม่เดี๋ยวนี้ไหม?'
+    );
+    if (!confirmed) {
+      pmToast('⏭️ ข้ามอัปเดต v' + remoteVer, 'var(--text2)');
+      return;
+    }
+
+    // ── Step 4: Download app.html ใหม่ ──
+    if (icon)  icon.textContent  = '⬇️';
+    if (label) label.textContent = 'กำลัง Download...';
+
+    const htmlRes = await fetch(_GH_HTML_URL + '?t=' + Date.now());
+    if (!htmlRes.ok) throw new Error('Download failed: HTTP ' + htmlRes.status);
+    const newHtml = await htmlRes.text();
+
+    // ── Step 5: บันทึกผ่าน IPC (ถ้าอยู่ใน Electron) หรือ reload จาก blob ──
+    const savedViaIpc = await _updateSaveAndReload(newHtml, remoteVer);
+    if (!savedViaIpc) {
+      // Fallback: เปิด tab ใหม่ (กรณีไม่ใช่ Electron หรือ IPC ไม่มี handler)
+      pmToast('📥 ดาวน์โหลดสำเร็จ v' + remoteVer + ' — กรุณา replace app.html ด้วยตนเอง', 'var(--blue)');
+    }
+
   } catch(e) {
     pmToast('❌ ตรวจสอบไม่ได้: ' + e.message, 'var(--red)');
   } finally {
     btn.disabled = false;
     btn.style.borderColor = 'var(--border2)';
-    btn.style.color       = 'var(--text2)';
+    btn.style.color = 'var(--text2)';
     if (icon)  icon.textContent  = '🔄';
     if (label) label.textContent = 'อัปเดต';
+  }
+}
+
+// บันทึกไฟล์ผ่าน IPC แล้ว reload — ถ้า IPC ไม่มีให้ fallback gracefully
+async function _updateSaveAndReload(newHtml, newVersion) {
+  try {
+    // ลอง IPC ก่อน (ถ้า main.js มี handler)
+    const ipc = window.require && window.require('electron').ipcRenderer;
+    if (ipc) {
+      await ipc.invoke('update-save-html', newHtml);
+      pmToast('✅ อัปเดต v' + newVersion + ' สำเร็จ — กำลังโหลดใหม่...', 'var(--green)');
+      setTimeout(() => location.reload(), 1200);
+      return true;
+    }
+  } catch(e) {
+    // IPC ไม่มี handler → ใช้ blob URL reload แทน
+  }
+
+  // Fallback: โหลด HTML ใหม่จาก blob URL (ได้ layout ใหม่ แต่ localStorage ยังอยู่)
+  try {
+    pmToast('✅ v' + newVersion + ' พร้อมแล้ว — กำลังโหลดใหม่...', 'var(--green)');
+    const blob = new Blob([newHtml], { type: 'text/html' });
+    const url  = URL.createObjectURL(blob);
+    setTimeout(() => { location.href = url; }, 1000);
+    return true;
+  } catch(e2) {
+    return false;
   }
 }
 
