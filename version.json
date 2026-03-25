@@ -1,4 +1,4 @@
 {
-  "version": "7.2.0",
-  "notes": "เพิ่ม Project Accounting Module + ปุ่มอัปเดตอัตโนมัติ"
+  "version": "7.2.1",
+  "notes": "เพิ่ม Project Accounting Module + อัพเดตรายจ่ายจาก schedule อัตโนมัติ"
 }
